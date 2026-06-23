@@ -44,4 +44,14 @@ Thumbs.db
 # Github / Copilot
 .github
 
-/docs_old/*
+# Archives
+*.zip
+
+# Obsidian vault app-state
+.obsidian/
+
+# Duplicate / pre-consolidation doc trees (kept on disk, not tracked)
+/docs_old/
+/docs_new/
+/docs_gpt/
+/docs_complete/
