@@ -171,13 +171,22 @@ when `@architect` is Matrix-bound and reachable end-to-end.
 
 ---
 
-## Follow-ups → P004
+## P004 — DONE (the two-agent loop is live)
 
-- **Bind `@architect` on Matrix** — migrate `channels.matrix` to the multi-account shape
-  (`channels.matrix.accounts{}` + `defaultAccount`), add `@architect`, capture its access token
-  (mirror `@openclaw`'s file-SecretRef), `encryption: true`, and `openclaw agents bind
-  --bind matrix:architect`. This touches the live `@openclaw` channel — back up, validate, verify
-  *both* bots after. Manual room-join per P002.
-- **Then the two-agent loop** — architect ↔ main in one room, `allowBots: "mentions"` as the
-  human-gated brake.
-- The gateway-path proof (above) closes once `@architect` is reachable.
+`@architect` is bound on Matrix and the mention-gated loop room (**Drafting Table**) is verified
+live. Full record: **`docs/openclaw/two-agent-loop.md`**. Highlights / deviations from the plan
+above:
+
+- **Additive, not a relocation.** `@openclaw` stayed the implicit top-level `default` account
+  (token + E2EE store untouched); only `accounts.architect` was added. The plugin connects the
+  `accounts{}` map *plus* the implicit default, so a relocation was unnecessary and riskier — see
+  the two-agent-loop doc for the code-level reasoning.
+- **`openclaw agents bind --agent architect --bind matrix:architect`** wrote the top-level
+  `bindings[]` route with **no scope wall** (unlike `channels add`).
+- **Token minted via `localhost:8008` on CT171**, not the public URL — Synapse rejects
+  password-login through the public URL (403), a hard-won finding (the bot creds file was *not*
+  stale). Token then `scp`'d to the CT175 SecretRef file.
+- **Gate:** `channels.matrix.rooms["!FKZTkwAIkROBtdHyCl:…"]` with `allowBots:"mentions"` +
+  `requireMention:true` (channel-level, applies to both accounts), `botLoopProtection` on.
+- The deferred **gateway-path proof** is now closed — `@architect` answers live through the
+  gateway transport.
