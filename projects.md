@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line** — reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule — but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-06-22
+**Last updated:** 2026-06-23
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -10,12 +10,11 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** `P002 → P003 → P004 → P005 → P006`
+**Order — edit this line to reorder:** `P003 → P004 → P005 → P006`
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
-| P002 | Matrix plugin + single-bot proof (`@openclaw`) | openclaw/matrix | active | P001 | docs/openclaw |
-| P003 | Architect agent + doc repo wiring (read-only, Opus) | openclaw/matrix | queued | — (verified after P002) | docs/openclaw, agents/architect |
+| P003 | Architect agent + doc repo wiring (read-only, Opus) | openclaw/matrix | active | — (verified after P002) | docs/openclaw, agents/architect |
 | P004 | Two-agent loop (architect ↔ main ↔ you, mention-gated) | openclaw/matrix | queued | P001,P002,P003 | docs/openclaw |
 | P005 | Ollama LXC (CPU/RAM; hosts embeddings once proven → fixes semantic memory) | ollama | queued | — (after Matrix track) | docs/ollama |
 | P006 | Hermes on Mac (standalone → repo integration → OC bridge) | hermes | queued | — | docs/hermes |
@@ -43,6 +42,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | C002 | Step 1 — finish OpenClaw config (memory split, routing policy, hardening, SecretRef, pruning) | openclaw | done   | docs/openclaw/knowledge-base |
 | P000 | Migrate repo to category-first layout (planning at root; config/ docs/ agents/)              | repo     | done   | README.md; commit b0e1e57    |
 | P001 | Synapse homeserver on own LXC (CT171; Postgres; NPM/TLS; public, federation off)             | openclaw/matrix | done | docs/proxmox/synapse-matrix.md |
+| P002 | Matrix plugin + single-bot proof (`@openclaw`), E2EE working, per-room session isolation     | openclaw/matrix | done | docs/openclaw/matrix-bot-channel.md |
 
 ---
 

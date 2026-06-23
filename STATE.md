@@ -2,7 +2,7 @@
 
 *The narrative snapshot of where everything stands right now, a complete overview of the entire homelab cluster. Read this first. For the ordered task list see `projects.md`; for the idea pool see `ideas.md`; for per-subject detail see `docs/<subject>/`.*
 
-**Last updated:** 2026-06-22
+**Last updated:** 2026-06-23
 
 ---
 
@@ -33,13 +33,15 @@ Migrated to the **category-first** layout (`config/` · `docs/` · `agents/`, su
 
 ## Next major track: Matrix two-agent loop (architect + main)
 
-**Status: active — P001 (Synapse homeserver) DONE (2026-06-22); P002 (Matrix plugin + single-bot proof) is the current step. Runs before Ollama.**
+**Status: active — P001 (Synapse) + P002 (Matrix bot channel, with E2EE) DONE (2026-06-23); P003 (architect agent) is the current step. Runs before Ollama.**
 
 Replicate the current planning loop (Opus planner → human gate → executor) inside the homelab, in a self-hosted Matrix room. Planner = new `architect` agent (read-only, Opus); executor = existing OpenClaw gateway, wired in as the `@openclaw` account. Chosen because Matrix natively supports two agents in one room with `allowBots: "mentions"` as the human-gated brake, and it self-hosts. Built before Ollama because the architect loop will be used to plan every later step.
 
 Dependency order: Synapse homeserver → Matrix plugin + single-bot proof → architect agent + doc repo → two-agent loop. See `docs/openclaw/` (architect track) for full reasoning.
 
-**Synapse homeserver (P001 — live):** `matrix.ryankennedy.dev` on CT171 (`.171`), Postgres 16 backed, Element HQ image. Reverse-proxied by NPM on CT110 (`.110`) with a Let's Encrypt DNS-01 cert; public (80/443 NAT-forwarded), **federation off**, registration closed. Split-horizon DNS (pfSense host override → `.110` on-net; DigitalOcean → WAN off-net). Verified send/receive on desktop + phone, on-net and over WireGuard. Accounts: `@ryan` (admin), `@openclaw` + `@architect` (non-admin, reserved for the agent loop). Secrets (signing key, bot creds) off-box in `~/homelab-secrets/`. Full operational record: `docs/proxmox/synapse-matrix.md`.
+**Synapse homeserver (P001 — live):** `matrix.ryankennedy.dev` on CT171 (`.171`), Postgres 16 backed, Element HQ image. Reverse-proxied by NPM on CT110 (`.110`) with a Let's Encrypt DNS-01 cert; public (80/443 NAT-forwarded), **federation off**, registration closed. Split-horizon DNS (pfSense host override → `.110` on-net; DigitalOcean → WAN off-net). Verified send/receive on desktop + phone, on-net and over WireGuard. Accounts: `@ryan` (admin), `@openclaw` + `@architect` (non-admin). Secrets (signing key, bot creds) off-box in `~/homelab-secrets/`. Full record: `docs/proxmox/synapse-matrix.md`.
+
+**Matrix bot channel (P002 — live):** OpenClaw gateway (CT175) wired to Synapse as `@openclaw` via the `@openclaw/matrix@2026.6.8` channel plugin (config-edited directly into `openclaw.json`, since the box CLI is intentionally read-only). Bot reads/responds over Matrix, gated to `@ryan` (`dm.allowFrom`). **E2EE working** — encryption auto-bootstrapped `@openclaw`'s cross-signing + self-verified device; bot decrypts and replies encrypted. `dm.sessionScope=per-room` isolates rooms (so encrypted content can't bleed into unencrypted replies). Encrypted-invite auto-join is finicky → bot is joined into rooms manually (one-time per room; small fixed set). Follow-ups: user-verify `@openclaw` (green shield), back up E2EE recovery key off-box, resolve the pending CLI scope request. Full record: `docs/openclaw/matrix-bot-channel.md`.
 
 ---
 
