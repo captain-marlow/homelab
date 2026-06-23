@@ -1,0 +1,36 @@
+# Synapse Matrix homeserver + dedicated Postgres (CT171)
+# server_name = matrix.ryankennedy.dev (permanent). Federation OFF; public client access via NPM.
+# POSTGRES_PASSWORD comes from /config/.env on the CT (NOT committed to the repo).
+services:
+  postgres:
+    image: postgres:16
+    container_name: synapse-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in /config/.env}
+      POSTGRES_DB: synapse
+      # Synapse requires C collation/ctype
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - /config/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse -d synapse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  synapse:
+    image: ghcr.io/element-hq/synapse:latest
+    container_name: synapse
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SYNAPSE_SERVER_NAME: matrix.ryankennedy.dev
+      SYNAPSE_REPORT_STATS: "no"
+    volumes:
+      - /config/synapse:/data
+    ports:
+      - "8008:8008"   # client API; proxied by NPM, not exposed directly

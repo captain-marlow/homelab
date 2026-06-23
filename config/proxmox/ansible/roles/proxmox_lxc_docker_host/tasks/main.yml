@@ -200,7 +200,7 @@
       apt-get install -y python3 curl
 
       curl -fsSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/setup-periphery.py -o /tmp/setup-periphery.py
-      python3 /tmp/setup-periphery.py --force-service-file
+      python3 /tmp/setup-periphery.py --force-service-file true
 
       # Deterministic check: service file exists
       test -f /etc/systemd/system/periphery.service

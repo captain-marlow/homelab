@@ -6,6 +6,12 @@
 
 ---
 
+## Repo
+
+Migrated to the **category-first** layout (`config/` · `docs/` · `agents/`, subject as the namespace inside each) — **P000 complete (2026-06-22)**; see `README.md`. The pre-consolidation doc trees (`docs_old/_new/_gpt/_complete`) are kept on disk but untracked, pending D006.
+
+---
+
 ## OpenClaw
 
 **Status: daily driver, hardened, documented. Step 1 of the build plan complete.**
@@ -27,11 +33,13 @@
 
 ## Next major track: Matrix two-agent loop (architect + main)
 
-**Status: queued, designed, not yet built. Runs before Ollama.**
+**Status: active — P001 (Synapse homeserver) DONE (2026-06-22); P002 (Matrix plugin + single-bot proof) is the current step. Runs before Ollama.**
 
-Replicate the current planning loop (Opus planner → human gate → executor) inside the homelab, in a self-hosted Matrix room. Planner = new `architect` agent (read-only, Opus); executor = existing `main`. Chosen because Matrix natively supports two agents in one room with `allowBots: "mentions"` as the human-gated brake, and it self-hosts. Built before Ollama because the architect loop will be used to plan every later step.
+Replicate the current planning loop (Opus planner → human gate → executor) inside the homelab, in a self-hosted Matrix room. Planner = new `architect` agent (read-only, Opus); executor = existing OpenClaw gateway, wired in as the `@openclaw` account. Chosen because Matrix natively supports two agents in one room with `allowBots: "mentions"` as the human-gated brake, and it self-hosts. Built before Ollama because the architect loop will be used to plan every later step.
 
 Dependency order: Synapse homeserver → Matrix plugin + single-bot proof → architect agent + doc repo → two-agent loop. See `docs/openclaw/` (architect track) for full reasoning.
+
+**Synapse homeserver (P001 — live):** `matrix.ryankennedy.dev` on CT171 (`.171`), Postgres 16 backed, Element HQ image. Reverse-proxied by NPM on CT110 (`.110`) with a Let's Encrypt DNS-01 cert; public (80/443 NAT-forwarded), **federation off**, registration closed. Split-horizon DNS (pfSense host override → `.110` on-net; DigitalOcean → WAN off-net). Verified send/receive on desktop + phone, on-net and over WireGuard. Accounts: `@ryan` (admin), `@openclaw` + `@architect` (non-admin, reserved for the agent loop). Secrets (signing key, bot creds) off-box in `~/homelab-secrets/`. Full operational record: `docs/proxmox/synapse-matrix.md`.
 
 ---
 

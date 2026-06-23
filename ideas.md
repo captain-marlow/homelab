@@ -13,3 +13,4 @@
 - **Second Obsidian vault sync** — personal-notes vault cloud sync method still TBD (separate from the homelab-repo-mirror vault).
 - **`STYLE.md` for architect** — response-style spec (shorter, fewer caveats). Nice-to-have, floats free, applies once architect exists.
 - **Stricter agent gate** — if `allowBots: "mentions"` flow feels too loose in practice, consider an explicit-command gate instead. Decide during the two-agent loop build.
+- **OpenClaw "prose"** — explore further: https://docs.openclaw.ai/prose

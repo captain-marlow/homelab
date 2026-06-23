@@ -1,0 +1,20 @@
+- name: Provision NPM (reverse proxy) Docker-host LXC (CT110)
+  hosts: proxmox
+  gather_facts: false
+  vars:
+    stack_name: "npm"
+    ct_id: 110
+    ct_hostname: "npm"
+    ct_ip: "192.168.1.110"
+
+    ct_cores: 1
+    ct_memory_mb: 1024
+    ct_swap_mb: 512
+    ct_rootfs_gb: 8
+
+    # Single-service stack: one dataset for NPM's persistent state.
+    # Compose will mount /config/npm/{data,letsencrypt}.
+    app_datasets:
+      - "npm"
+  roles:
+    - proxmox_lxc_docker_host

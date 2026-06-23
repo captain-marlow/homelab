@@ -10,13 +10,11 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** `P000 → P001 → P002 → P003 → P004 → P005 → P006`
+**Order — edit this line to reorder:** `P002 → P003 → P004 → P005 → P006`
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
-| P000 | Migrate repo to category-first layout (planning at root; config/ docs/ agents/) | repo | active | — | this README |
-| P001 | Synapse homeserver on own LXC | openclaw/matrix | queued | — | docs/openclaw (architect track) |
-| P002 | Matrix plugin + single-bot proof (`@main`) | openclaw/matrix | queued | P001 | docs/openclaw |
+| P002 | Matrix plugin + single-bot proof (`@openclaw`) | openclaw/matrix | active | P001 | docs/openclaw |
 | P003 | Architect agent + doc repo wiring (read-only, Opus) | openclaw/matrix | queued | — (verified after P002) | docs/openclaw, agents/architect |
 | P004 | Two-agent loop (architect ↔ main ↔ you, mention-gated) | openclaw/matrix | queued | P001,P002,P003 | docs/openclaw |
 | P005 | Ollama LXC (CPU/RAM; hosts embeddings once proven → fixes semantic memory) | ollama | queued | — (after Matrix track) | docs/ollama |
@@ -43,6 +41,8 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | ---- | --------------------------------------------------------------------------------------------- | -------- | ------ | ---------------------------- |
 | C001 | Failover & auth hardening (3-deep cross-provider chain, durable Anthropic token)              | openclaw | done   | docs/openclaw/knowledge-base |
 | C002 | Step 1 — finish OpenClaw config (memory split, routing policy, hardening, SecretRef, pruning) | openclaw | done   | docs/openclaw/knowledge-base |
+| P000 | Migrate repo to category-first layout (planning at root; config/ docs/ agents/)              | repo     | done   | README.md; commit b0e1e57    |
+| P001 | Synapse homeserver on own LXC (CT171; Postgres; NPM/TLS; public, federation off)             | openclaw/matrix | done | docs/proxmox/synapse-matrix.md |
 
 ---
 

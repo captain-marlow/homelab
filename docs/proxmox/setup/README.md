@@ -1,8 +1,40 @@
-# Proxmox Infrastructure Setup
+## I. Proxmox
 
-This manual details the underlying storage philosophy and user permission standards that enable the high-performance "Scientific Approach" of this homelab. It serves as the technical justification for the configurations found in the **[setup/](./../../setup/)** guides.
+This guide covers the installation and setup of a **Proxmox VE** host. Proxmox VE is a Debian-based hypervisor that manages virtual machines and Linux containers (LXCs) through a web interface and CLI. It will help you install a fresh Proxmox VE install and turn it into the host described in this repository using the same storage layout, LXC conventions, Docker patterns, and automation model.
 
----
+At a high level:
+
+- A Proxmox VE 9 host (`pve01`) runs on bare metal. Other nodes may be added later.
+- ZFS is used for all persistent storage, with explicit datasets and mountpoints
+- Privileged LXCs are used as Docker hosts
+- Docker Compose defines application stacks
+- Ansible provisions the host and LXCs
+- Komodo monitors and redeploys Docker stacks
+
+## II. What You Will Build
+
+Following this section from start to finish will produce a Proxmox host with a predictable ZFS dataset layout, a standard privileged Docker-in-LXC Docker pattern, and repeatable automations.
+
+CT100 is the infrastructure container. It hosts Nginx Proxy Manager, Komodo Core, MongoDB, and a periphery agent. CT150 is the Servarr container. It hosts qBittorrent, Sonarr, Radarr, Lidarr, Prowlarr, and the shared `/data` layout used for downloads and media. Other containers will be added layer.
+
+The system is built around host ZFS datasets and bind mounts rather than container states and network shares. Docker Compose files define the application stacks, Ansible provisions the repeatable parts of the build, and Komodo handles runtime deployment and normal stack operations.
+## III. Host Identity (pve01)
+
+This guide assumes that the host has the following values:
+
+- Proxmox VE `9.1.4`
+- host name `pve01`
+- Management IP `192.168.1.19/24`
+- Gateway/DNS `192.168.1.1`
+- Bridge `vmbr0`
+- Storage pools `flash` and `tank`
+- Proxmox storage IDs `isos`, `vms`, `database`, and `backups`
+- Debian LXC template `debian-13-standard_13.1-2_amd64.tar.zst`
+
+## IV. Node Specific Hardware
+
+For hardware details specific to this host, see [Hardware/pve01.md](../Hardware/pve01.md). This guide references that the hardware mentioned on that page, although this guide could be followed on other similar hardware.
+
 
 ## I. ZFS Pool Architecture
 
@@ -66,10 +98,19 @@ Standard commands for managing this infrastructure:
 - **Check Recordsize**: `zfs get recordsize <dataset>`
 - **Fix Permissions**: `chown -R 1000:1000 /mnt/media`
 
+## V. Reading Order
+
+Read these files in order.
+
+1. [01 — Host Baseline](01%20Host%20Baseline.md)
+2. [02 — Storage and ZFS Layout](./02-storage-and-zfs-layout.md)
+3. [03 — The Privileged LXC Pattern](./03-the-privileged-lxc-pattern.md)
+4. [04 — Infrastructure LXC (CT100)](./04-infrastructure-lxc-ct100.md)
+5. [05 — Servarr LXC (CT150)](./05-servarr-lxc-ct150.md)
+6. [06 — Ansible Provisioning](./06-ansible-provisioning.md)
+7. [07 — Komodo and Stack Deployment](./07-komodo-and-stack-deployment.md)
+8. [08 — Operations and Backups](./08-operations-and-backups.md)
+
 ---
 
-**Related Documentation:**
-
-- **[(04) ZFS Performance Tuning](../../setup/04-zfs-performance-tuning.md)**
-- **[(05) The Privileged LXC Pattern](../../setup/05-the-privileged-lxc-pattern.md)**
-- **[Privileged vs Unprivileged LXCs](./privileged-vs-unprivileged-lxcs.md)**
+**Next step** → [02 — ZFS Performance Tuning](./02-zfs-performance-tuning.md)

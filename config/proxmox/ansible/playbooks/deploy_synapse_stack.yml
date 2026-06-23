@@ -1,0 +1,65 @@
+- name: Deploy Synapse stack into CT171
+  hosts: proxmox
+  gather_facts: false
+
+  # Deploys the compose file only. A FIRST-TIME build also needs the one-shot config
+  # generation + configure_synapse.py patch BEFORE `up` (see docs/proxmox and the header
+  # of config/proxmox/synapse/configure_synapse.py). This playbook is the idempotent
+  # redeploy path once /config/{.env,synapse/homeserver.yaml} already exist.
+
+  vars:
+    ct_id: 171
+
+    # compose file path (relative to ansible/ directory)
+    local_compose_path: "{{ playbook_dir }}/../../synapse/docker-compose.yml"
+    staged_compose_path: "/tmp/synapse-docker-compose.yml"
+    ct_compose_path: "/config/docker-compose.yml"
+
+  tasks:
+    - name: Verify local compose exists (control node)
+      delegate_to: localhost
+      run_once: true
+      stat:
+        path: "{{ local_compose_path }}"
+      register: compose_stat
+
+    - name: Fail if local compose missing
+      delegate_to: localhost
+      run_once: true
+      fail:
+        msg: "Local compose file not found: {{ local_compose_path }}"
+      when: not compose_stat.stat.exists
+
+    - name: Verify /config/.env exists in CT (POSTGRES_PASSWORD) before deploy
+      shell: |
+        set -euo pipefail
+        pct exec {{ ct_id }} -- bash -lc 'test -f /config/.env || { echo "MISSING /config/.env — run configure_synapse.py first"; exit 1; }'
+      args:
+        executable: /bin/bash
+
+    - name: Upload compose to Proxmox host staging path
+      copy:
+        src: "{{ local_compose_path }}"
+        dest: "{{ staged_compose_path }}"
+        mode: "0644"
+
+    - name: Push compose from Proxmox host into CT171 /config (and verify)
+      shell: |
+        set -euo pipefail
+        pct push {{ ct_id }} "{{ staged_compose_path }}" "{{ ct_compose_path }}"
+        pct exec {{ ct_id }} -- bash -lc 'ls -la {{ ct_compose_path }} && head -n 5 {{ ct_compose_path }}'
+      args:
+        executable: /bin/bash
+
+    - name: Bring up Synapse stack
+      shell: |
+        set -euo pipefail
+        pct exec {{ ct_id }} -- bash -lc '
+          set -euo pipefail
+          test -f /config/docker-compose.yml
+          docker compose -f /config/docker-compose.yml pull
+          docker compose -f /config/docker-compose.yml up -d
+          docker ps
+        '
+      args:
+        executable: /bin/bash

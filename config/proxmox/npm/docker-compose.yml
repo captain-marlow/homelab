@@ -1,0 +1,15 @@
+# Nginx Proxy Manager — edge reverse proxy / TLS termination (CT110)
+# Local-only: do NOT forward 80/443/81 from WAN in pfSense.
+# Data + certs persist on the flash 'npm' ZFS dataset (mounted at /config/npm).
+services:
+  npm:
+    image: jc21/nginx-proxy-manager:latest   # pin to a version tag after first deploy
+    container_name: npm
+    restart: unless-stopped
+    ports:
+      - "80:80"      # HTTP (proxied vhosts; unused for DNS-01 challenge)
+      - "443:443"    # HTTPS (client entry -> proxied to Synapse :8008)
+      - "81:81"      # Admin UI (keep LAN-only)
+    volumes:
+      - /config/npm/data:/data
+      - /config/npm/letsencrypt:/etc/letsencrypt

@@ -1,0 +1,53 @@
+- name: Deploy NPM stack into CT110
+  hosts: proxmox
+  gather_facts: false
+
+  vars:
+    ct_id: 110
+
+    # compose file path (relative to ansible/ directory)
+    local_compose_path: "{{ playbook_dir }}/../../npm/docker-compose.yml"
+    staged_compose_path: "/tmp/npm-docker-compose.yml"
+    ct_compose_path: "/config/docker-compose.yml"
+
+  tasks:
+    - name: Verify local compose exists (control node)
+      delegate_to: localhost
+      run_once: true
+      stat:
+        path: "{{ local_compose_path }}"
+      register: compose_stat
+
+    - name: Fail if local compose missing
+      delegate_to: localhost
+      run_once: true
+      fail:
+        msg: "Local compose file not found: {{ local_compose_path }}"
+      when: not compose_stat.stat.exists
+
+    - name: Upload compose to Proxmox host staging path
+      copy:
+        src: "{{ local_compose_path }}"
+        dest: "{{ staged_compose_path }}"
+        mode: "0644"
+
+    - name: Push compose from Proxmox host into CT110 /config (and verify)
+      shell: |
+        set -euo pipefail
+        pct push {{ ct_id }} "{{ staged_compose_path }}" "{{ ct_compose_path }}"
+        pct exec {{ ct_id }} -- bash -lc 'ls -la {{ ct_compose_path }} && head -n 5 {{ ct_compose_path }}'
+      args:
+        executable: /bin/bash
+
+    - name: Bring up NPM stack
+      shell: |
+        set -euo pipefail
+        pct exec {{ ct_id }} -- bash -lc '
+          set -euo pipefail
+          test -f /config/docker-compose.yml
+          docker compose -f /config/docker-compose.yml pull
+          docker compose -f /config/docker-compose.yml up -d
+          docker ps
+        '
+      args:
+        executable: /bin/bash

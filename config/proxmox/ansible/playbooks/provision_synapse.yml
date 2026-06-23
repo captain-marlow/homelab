@@ -1,0 +1,20 @@
+- name: Provision Synapse homeserver Docker-host LXC (CT171)
+  hosts: proxmox
+  gather_facts: false
+  vars:
+    stack_name: "synapse"
+    ct_id: 171
+    ct_hostname: "synapse"
+    ct_ip: "192.168.1.171"
+
+    ct_cores: 2
+    ct_memory_mb: 4096
+    ct_swap_mb: 512
+    ct_rootfs_gb: 20
+
+    # Stack = Synapse + its dedicated Postgres (one coherent unit)
+    app_datasets:
+      - "postgres"
+      - "synapse"
+  roles:
+    - proxmox_lxc_docker_host
