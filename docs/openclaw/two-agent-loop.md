@@ -110,23 +110,38 @@ no account; an `account:` field would scope it to one identity).
 
 ### Context visibility — required for bots to read each other
 
-`allowBots: "mentions"` lets a bot *trigger* on another bot's mention, but the triggered bot must
-also be allowed to *read* the other's message. **`contextVisibility` defaults to an allowlist of
-(human) senders, so a bot's messages are filtered out of another bot's context** — symptom:
-`@openclaw`, mentioned by `@ryan` to "read the architect's response," replied that it couldn't see
-it. Fix: set channel-level **`contextVisibility: "all"`** (enum: `all` | `allowlist` |
-`allowlist_quote`) so all room messages are visible, plus **`historyLimit: 30`** for a solid recent
-window. Both are channel-level (the per-room `rooms{}` schema has neither). Safe here because the
-bots are only ever in private, controlled rooms.
+For a bot to *read* another bot's message, it must be allowed to see it. **`contextVisibility`
+defaults to an allowlist of (human) senders, so a bot's messages are filtered out of another bot's
+context** — symptom: `@openclaw`, mentioned by `@ryan` to "read the architect's response," replied
+it couldn't see it. Fix: set channel-level **`contextVisibility: "all"`** (enum: `all` |
+`allowlist` | `allowlist_quote`) so all room messages are visible, plus **`historyLimit: 30`** for a
+recent window. Both are channel-level (the per-room `rooms{}` schema has neither). Safe here because
+the bots are only ever in private, controlled rooms.
 
 > E2EE caveat: a bot can only read messages it holds Megolm keys for (sent while it was in the
 > room). `contextVisibility: "all"` surfaces decryptable history; it can't recover pre-join content.
 
+### Bots do NOT auto-trigger each other — by design (the human relays)
+
+**A bot's @mention of another bot does not fire it.** `allowBots: "mentions"` requires the
+triggering message to *mention* the target, but "mention" means a **native `m.mentions` pill** —
+which only a human client emits when you pick the user from the autocomplete popup. **Bots send
+plain text** ("@openclaw"), no pill, and `mentionPatterns` (the regex path that would let text count
+as a mention) is **left unconfigured**. So native mentions always fire (that's `@ryan`); bot
+text-mentions register as nothing. Net: **the planner and executor never auto-chain — `@ryan`
+relays each handoff.** This is the intended, strongest form of the human gate: nothing reaches the
+executor without the human passing it, and there's no runaway agent-to-agent loop.
+
 **Verified behavior:** `@ryan` mentions `@architect` → architect acks (eye-emoji reaction) and
-returns a repo-grounded plan on Opus; an unmentioned line → both bots silent; `@openclaw` replies
-when mentioned. **Bot→bot handoff verified:** `@architect`'s reply addressed `@openclaw` → openclaw
-read the architect's message (post `contextVisibility` fix) and responded autonomously with its own
-executor take — no human relay — while staying mention-gated and loop-protected.
+returns a repo-grounded plan on Opus; an unmentioned line → both bots silent; `@ryan` mentions
+`@openclaw` → it replies, and with `contextVisibility:"all"` it can **read** the architect's plan
+when asked to ("read the architect's response and weigh in"). A bot writing "@otherbot" does **not**
+auto-trigger the other (confirmed live). First live session: architect + openclaw (relayed by
+`@ryan`) converged on a P005-next recommendation.
+
+> Optional knob — autonomous handoff: add `mentionPatterns` regex for the bot handles (channel
+> `mentionPatterns` policy scopes the global `groupChat.mentionPatterns` array to rooms) so a bot's
+> text "@openclaw" counts as a mention. Deliberately **off** — manual relay is the chosen design.
 
 ---
 
