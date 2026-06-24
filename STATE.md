@@ -2,7 +2,7 @@
 
 *The narrative snapshot of where everything stands right now, a complete overview of the entire homelab cluster. Read this first. For the ordered task list see `projects.md`; for the idea pool see `ideas.md`; for per-subject detail see `docs/<subject>/`.*
 
-**Last updated:** 2026-06-23
+**Last updated:** 2026-06-24
 
 ---
 
@@ -25,7 +25,7 @@ Migrated to the **category-first** layout (`config/` · `docs/` · `agents/`, su
 - Context pruning TTL tuned 1h→20m; watching peak context and cache-read over the next few large sessions.
 
 **Deferred / watching:**
-- Semantic memory unavailable — embeddings need OpenAI embeddings entitlement that Codex OAuth doesn't grant. Deferred to the local Ollama tier rather than provisioning a soon-redundant paid key. Keyword/`rg` search is the interim. Note: `openclaw memory search` can exit 0 with empty output after a silent embedding failure — empty ≠ absence.
+- Semantic memory **RESTORED (2026-06-24, P005)** — now served by local Ollama embeddings (`nomic-embed-text` on CT172), replacing the dead OpenAI path. `main`'s index = 7 files / 53 chunks; `openclaw memory search` returns real ranked results. Embed latency ~0.3s after the CT172 core bump (4→16). See the Ollama tier section below + `docs/ollama/ollama-tier.md`. (The silent-failure caveat still holds in general: `openclaw memory search` can exit 0 with empty output after an embedding failure — empty ≠ absence.)
 - Gateway-token rotation deferred (loopback-only, low exposure) but is the matched closing step to the same-value relocation.
 - Anthropic usage stats absent from dashboard post-June-15 — leading theory is a billing change; treated as cosmetic.
 
@@ -49,6 +49,16 @@ Dependency chain (all done): Synapse homeserver → Matrix plugin + single-bot p
 
 ---
 
+## Ollama local-AI tier (CT172) — COMPLETE
+
+**Status: DONE (2026-06-24) — P005. Local embeddings now back OpenClaw semantic memory; the OpenAI entitlement gap is closed without a paid key.**
+
+A CPU-only Ollama runner on its own LXC (`192.168.1.172`, same `proxmox_lxc_docker_host` Ansible role as the other stacks; Docker + Komodo Periphery). Hosts one embedding model, **`nomic-embed-text`** (768-dim), **LAN-only** (port bound to the LXC IP, no pfSense NAT forward; Ollama is auth-less, so the LAN is the boundary). Model blobs persist on the ZFS `flash` pool.
+
+OpenClaw's `agents.defaults.memorySearch` was repointed `provider: openai → ollama` (first-class provider; hits `/api/embed`; `batch:false`, `fallback:none`), gateway restarted, index force-rebuilt → **7 files / 53 chunks**; `memory search` returns real ranked hits (positive test, empty≠absence). **Perf finding:** first build was ~7s/embed because CT172 had only 4 of the host's 32 threads on a **hybrid P/E-core CPU** (threads likely on E-cores); `pct set 172 -cores 16` dropped embed latency to **~0.3s** (~20–40× faster). GPU deferred; a small local chat model for cheap-task offload is the next use of this tier (separate step). Full record: `docs/ollama/ollama-tier.md`.
+
+---
+
 ## Proxmox / pfSense
 
 Established infrastructure. Proxmox docs partly compiled (knowledge-base + setup); old notes still being consolidated. pfSense runs WireGuard (always-on phone client, LAN-IP access off-network) — this already covers remote access, so Tailscale is optional/later.
@@ -57,4 +67,4 @@ Established infrastructure. Proxmox docs partly compiled (knowledge-base + setup
 
 ## On the horizon (not yet active)
 
-Ollama LXC (hosts embeddings once proven, resolving the semantic-memory gap) → Hermes on Mac (standalone → homelab-repo integration → OC bridge) → Proxmox maintenance agent (lives on Mac/Hermes, SSHes in — independent of the system it fixes) → local Whisper (deployed last via the Proxmox agent).
+Hermes on Mac (standalone → homelab-repo integration → OC bridge) → Proxmox maintenance agent (lives on Mac/Hermes, SSHes in — independent of the system it fixes) → local Whisper (deployed last via the Proxmox agent). *(Ollama LXC done — P005.)* A small local chat model on the Ollama tier (heartbeat/classification offload) and the "architect on a local model" decision can now be taken empirically.

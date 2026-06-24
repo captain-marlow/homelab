@@ -46,8 +46,8 @@ Both are privileged Debian 13 CTs provisioned by the `proxmox_lxc_docker_host` A
 
 | File | Purpose |
 |------|---------|
-| `config/proxmox/ansible/playbooks/provision_npm.yml`     | provision CT110 via the baseline role |
-| `config/proxmox/ansible/playbooks/provision_synapse.yml` | provision CT171 via the baseline role |
+| `config/proxmox/ansible/playbooks/provision_npm_lxc.yml`     | provision CT110 via the baseline role |
+| `config/proxmox/ansible/playbooks/provision_synapse_lxc.yml` | provision CT171 via the baseline role |
 | `config/proxmox/npm/docker-compose.yml`                  | NPM stack |
 | `config/proxmox/synapse/docker-compose.yml`              | Synapse + Postgres stack |
 | `config/proxmox/synapse/configure_synapse.py`            | one-shot homeserver.yaml patcher (runs INSIDE CT171) |
@@ -58,13 +58,13 @@ Both are privileged Debian 13 CTs provisioned by the `proxmox_lxc_docker_host` A
 
 ## Build sequence (how it was stood up)
 
-**S1 — NPM (CT110).** `ansible-playbook provision_npm.yml` → `deploy_npm_stack.yml`. In the NPM
+**S1 — NPM (CT110).** `ansible-playbook provision_npm_lxc.yml` → `deploy_npm_stack.yml`. In the NPM
 admin UI (`http://192.168.1.110:81`) add a Let's Encrypt cert for `matrix.ryankennedy.dev` using
 the **DNS-01** challenge with a DigitalOcean API token (domain-scoped). DNS-01 is required because
 we don't want to expose port 80 to the ACME HTTP challenge and the cert can be issued before any
 public routing exists.
 
-**S2 — Synapse (CT171).** `ansible-playbook provision_synapse.yml`
+**S2 — Synapse (CT171).** `ansible-playbook provision_synapse_lxc.yml`
 (`app_datasets: [postgres, synapse]`). Then, first-time only:
 
 ```bash

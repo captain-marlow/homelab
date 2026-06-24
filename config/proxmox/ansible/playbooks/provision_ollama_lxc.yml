@@ -1,0 +1,28 @@
+- name: Provision Ollama local-AI Docker-host LXC (CT172)
+  hosts: proxmox
+  gather_facts: false
+  vars:
+    stack_name: "ollama"
+    ct_id: 172
+    ct_hostname: "ollama"
+    ct_ip: "192.168.1.172"
+
+    # CPU/RAM tier (GPU deferred). Memory is a cgroup *ceiling*, not a reservation —
+    # an embeddings-only workload uses ~0.4 GB; the rest is free headroom so a small
+    # local chat model (heartbeat/classification offload) can land later without a
+    # rebuild. Live-resizable via `pct set 172 -memory <MB>` if needed.
+    # Embedding (and later small-model) inference is CPU-bound and scales ~linearly
+    # with threads. Host has 32 threads; 16 is a sweet spot (big speedup, leaves ample
+    # scheduling room for other CTs — CPU is time-shared, so this overprovisions safely).
+    # Live-resizable via `pct set 172 -cores <N>`.
+    ct_cores: 16
+    ct_memory_mb: 36864
+    ct_swap_mb: 4096
+    ct_rootfs_gb: 20
+
+    # One ZFS dataset for Ollama model blobs (snapshot/quota-friendly, on the flash
+    # pool). Mounted into the CT at /config/models via the role's mp0 (/config).
+    app_datasets:
+      - "models"
+  roles:
+    - proxmox_lxc_docker_host

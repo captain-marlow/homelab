@@ -1,0 +1,30 @@
+# Ollama local-AI runner (CT172) — the homelab's local model host.
+# Scope (P005): one embedding model (nomic-embed-text) to restore OpenClaw semantic memory.
+# Later: small chat models for cheap/high-frequency tasks (heartbeat, classification).
+#
+# LOCAL-ONLY exposure: the published port is bound to the LXC's LAN IP (192.168.1.172),
+# not 0.0.0.0, and there is NO pfSense NAT/port-forward for 11434 — so it is reachable
+# on-LAN only (OpenClaw CT175 -> .172). Ollama has NO auth of its own; LAN boundary is
+# the control. CPU-only on this tier (no GPU device mapping; GPU deferred).
+#
+# Models persist on the ZFS `flash` pool via /config/models (CT mp0 -> ZFS dataset),
+# so they survive container/CT recreation.
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    environment:
+      # In-container listen address; LAN exposure is governed by the host port bind below.
+      OLLAMA_HOST: "0.0.0.0:11434"
+      # Keep a loaded model warm briefly between requests (embedding calls are bursty).
+      OLLAMA_KEEP_ALIVE: "5m"
+    volumes:
+      - /config/models:/root/.ollama
+    ports:
+      - "192.168.1.172:11434:11434"   # LAN-IP bind only; no public NAT forward
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
