@@ -10,14 +10,14 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** `P005 → P007 → P008 → P006`
+**Order — edit this line to reorder:** `P005 → P006 → P007 → P008`
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
 | P005 | Ollama LXC (CPU/RAM; hosts embeddings once proven → fixes semantic memory) | ollama | queued | — (after Matrix track) | docs/ollama |
-| P007 | Documentation style guide (`STYLE.md`) + Vale/markdownlint (terminology, headers, formatting, verbosity norms; derived from existing house style). Also covers the architect's response-style spec (shorter, fewer caveats) as a subset. | docs | queued | — (after P005) | docs/meta |
-| P008 | Documentation sort pass — bring all docs to `STYLE.md` via the loop (architect audits/proposes → you gate → openclaw applies; Vale as the mechanical floor) | docs | queued | P004, P007 | docs/meta |
-| P006 | Hermes on Mac (standalone → repo integration → OC bridge) | hermes | queued | — | docs/hermes |
+| P006 | Hermes on Mac (standalone → repo integration → OC bridge) — the central read-write executor + git-push node (institutionalizes the Mac-side role Claude Code plays now) | hermes | queued | — | docs/hermes |
+| P007 | Documentation style guide (`STYLE.md`) + Vale/markdownlint (terminology, headers, formatting, verbosity norms; derived from existing house style). Also covers the architect's response-style spec (shorter, fewer caveats) as a subset. | docs | queued | — (pairs with P008) | docs/meta |
+| P008 | Documentation sort pass — bring all docs to `STYLE.md` via the loop (architect audits/proposes → you gate → Hermes applies + pushes; Vale as the mechanical floor) | docs | queued | P004, P006, P007 | docs/meta |
 
 ---
 
@@ -52,6 +52,8 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 - The Matrix track (P001–P004) was done **before** Ollama (P005) on purpose: the architect loop is used to plan later steps, so it compounds (done 2026-06-23).
 - Matrix internal order was a real dependency chain (Synapse → plugin → architect → loop), not just a preference.
-- **Docs work (P007 → P008) is sequenced before Hermes (P006):** establish a single style guide + linting floor, then bring all docs to it via the loop — cheap, self-contained, and it makes the repo (the architect's knowledge base) consistent before the larger Hermes track. IDs are non-sequential here (P006 = Hermes predates the docs projects); order lives in the queue line.
-- P008 reuses the two-agent loop (architect proposes styled rewrites read-only → human gate → openclaw applies) — documentation cleanup is itself a planner→executor task.
+- **Hermes (P006) is sequenced before the docs work (P007 → P008):** P008's "apply + push the styled rewrites" step needs the central read-write executor, which is Hermes (the architect is pull-only; openclaw write access is deferred). So Hermes must exist before the sort pass. IDs are non-sequential here (P006 = Hermes predates the docs projects); order lives in the queue line.
+- **P007 + P008 are a pair:** write `STYLE.md` + stand up the linters, then immediately run every doc through the loop against it. P007's guide is the shared contract both Vale and the architect read.
+- P008 reuses the two-agent loop (architect proposes styled rewrites read-only → human gate → **Hermes** applies + pushes) — documentation cleanup is itself a planner→executor task.
+- **Until Hermes exists, the Mac is the sole git writer/executor** (Claude Code now). Single writer = no conflict discipline needed; the architect's clone is a read-only mirror refreshed by `git pull` after each push.
 - Most cross-subject items (pfSense rules, note consolidation) have no hard dependency and can slot anywhere.
