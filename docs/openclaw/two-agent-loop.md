@@ -200,10 +200,18 @@ API with each bot's token (one-time per room). Watch for:
   token (from `~/.openclaw/secrets/`). Confirm via CT171 `local_current_membership`.
 - **Mint/replace a bot token:** login against `localhost:8008` on CT171, then `scp -3` to the
   CT175 secrets file (600). Restart the gateway.
-- **Start a fresh bot session (clear context):** type **`/reset`** (or **`/new`**) in the room/DM.
-  Session is per-room, so without this a room accumulates context (bounded by the pruning TTL +
-  `historyLimit`, but a reset is the clean break). Multi-bot rooms: verify whether `/reset` resets
-  one bot or both — **TBD, experiment** (likely each bot acts on its own session).
+- **Start a fresh bot session (clear context):** send **`/reset`** (single slash) with the target
+  bot mentioned. **Confirmed live:** Element passes it through; the *runtime* consumes it as a
+  command (the model never runs — no "typing"), archives the old transcript, and starts a fresh
+  session. Caveats:
+    - **No visible acknowledgment** — the reset is silent (a bug; the "✅ Session reset" ack isn't
+      delivered). openclaw confirmed via runtime/logs that the reset *did* happen.
+    - **`//reset` (double slash) is NOT a command** — it reaches the model as literal text and does
+      nothing. Use the single slash.
+    - **Per-bot** in a group room — mention the specific bot to reset only its session.
+    - **The architect can't self-confirm a reset** — the reset wipes the context that would prove
+      it (it may even deny it reset). Verify via **openclaw / logs**, never by asking the architect.
+    - `/new` likely also works (untested); `/reset` is the confirmed one.
 - **Add another gated room:** add a `channels.matrix.rooms["!id:…"]` entry (`allowBots:"mentions"`,
   `requireMention:true`), `openclaw config validate`, `openclaw gateway restart`.
 - **Restart after config edits:** `openclaw config validate && openclaw gateway restart`
@@ -217,6 +225,8 @@ API with each bot's token (one-time per room). Watch for:
 
 - **Public-URL password-login 403** — diagnose the NPM/Synapse path (Element works for `@ryan`;
   bot password-login via the public URL doesn't). Low urgency — token auth works.
+- **`/reset` delivers no visible acknowledgment** — the session reset happens but the expected
+  "✅ Session reset" confirmation isn't sent (openclaw-confirmed). Cosmetic/UX bug; reset works.
 - **User-verify the bots** in Element (green shield) — carried over from P002.
 - **Back up the E2EE recovery keys** off-box (both accounts) — carried over from P002.
 - **Resolve/reject the pending CLI scope-upgrade request** — carried over from P002.
