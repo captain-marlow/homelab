@@ -2,7 +2,7 @@
 
 *Loose pool of not-yet-projects. No order, no status discipline. When something firms up into a concrete next step, promote it to `projects.md` and delete it here.*
 
-**Last updated:** 2026-06-23
+**Last updated:** 2026-06-24
 
 ---
 
@@ -17,3 +17,4 @@
 - **OpenClaw "prose"** — explore further: https://docs.openclaw.ai/prose
 - **Ansible auto-registers new LXCs in Mac `~/.ssh/config`** — every LXC created via the Mac Ansible flow should append a `Host` block (alias / `HostName` / `User` / `IdentitiesOnly yes` / `IdentityFile`) matching the existing uniform pattern, so new containers are reachable by name immediately. A `blockinfile` task keyed on the alias. Belongs with the Ansible/Hermes repo-integration work (P006).
 - **Ansible LXC baseline-hardening role** — every new LXC should come up hardened by default: push the Mac's public key into the container (`authorized_keys` for the admin user) for immediate key-based access; **disable root SSH login** (`PermitRootLogin no`) and password auth (key-only); create a non-root sudo user; plus a general pass (firewall, unattended security upgrades). A reusable `baseline`/`hardening` role applied to every container. Pairs with the SSH-config auto-add above; same Ansible/Hermes track (P006).
+- **Read-only web ingest for the `architect` agent** — give the planner a web-fetch HTTP GET and/or web-search tool. A planner that cannot research while planning is half-blind; “read-only” should mean “can ingest, cannot mutate,” not “cannot learn.” A GET-only fetch is a read, not a system change, so it preserves the planner → executor → human-gate separation. Constraints: GET-only; no POST, write, or auth-bearing methods; no exec; treat all fetched content as untrusted prompt-injection surface; scope the capability exclusively to the architect tool allowlist. Source: arose while researching agentskills.io, which architect could not fetch.
