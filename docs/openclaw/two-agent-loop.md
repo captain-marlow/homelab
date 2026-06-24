@@ -98,7 +98,8 @@ the entry applies to **both** accounts (`selectInheritedMatrixRoomEntries` inclu
 no account; an `account:` field would scope it to one identity).
 
 - **`allowBots: "mentions"`** — a configured bot's message triggers the *other* bot only when it
-  `@`-mentions that bot. Default is `false` (bots ignore each other entirely).
+  `@`-mentions that bot **with the full MXID** (see "Bots CAN trigger each other" below). Default is
+  `false` (bots ignore each other entirely).
 - **`requireMention: true`** — humans must `@`-mention a bot to trigger it too. Together: the
   whole room is mention-gated; nothing fires unprompted.
 - **`botLoopProtection`** — auto-enabled whenever `allowBots` is `true`/`"mentions"` (defaults:
@@ -121,27 +122,33 @@ the bots are only ever in private, controlled rooms.
 > E2EE caveat: a bot can only read messages it holds Megolm keys for (sent while it was in the
 > room). `contextVisibility: "all"` surfaces decryptable history; it can't recover pre-join content.
 
-### Bots do NOT auto-trigger each other — by design (the human relays)
+### Bots CAN trigger each other — but only via the full MXID
 
-**A bot's @mention of another bot does not fire it.** `allowBots: "mentions"` requires the
-triggering message to *mention* the target, but "mention" means a **native `m.mentions` pill** —
-which only a human client emits when you pick the user from the autocomplete popup. **Bots send
-plain text** ("@openclaw"), no pill, and `mentionPatterns` (the regex path that would let text count
-as a mention) is **left unconfigured**. So native mentions always fire (that's `@ryan`); bot
-text-mentions register as nothing. Net: **the planner and executor never auto-chain — `@ryan`
-relays each handoff.** This is the intended, strongest form of the human gate: nothing reaches the
-executor without the human passing it, and there's no runaway agent-to-agent loop.
+**A bot's @mention fires the other bot only if it uses the full MXID**
+(`@openclaw:matrix.ryankennedy.dev`), which OpenClaw's outbound path converts to a real
+`m.mentions` pill → the target gets `was_mentioned: true` and activates (gated by
+`allowBots: "mentions"`). A **bare localpart** (`@openclaw`) stays inert text and triggers nothing.
+Humans get the pill for free (Element autocomplete); bots must emit the full MXID in the body.
 
-**Verified behavior:** `@ryan` mentions `@architect` → architect acks (eye-emoji reaction) and
-returns a repo-grounded plan on Opus; an unmentioned line → both bots silent; `@ryan` mentions
-`@openclaw` → it replies, and with `contextVisibility:"all"` it can **read** the architect's plan
-when asked to ("read the architect's response and weigh in"). A bot writing "@otherbot" does **not**
-auto-trigger the other (confirmed live). First live session: architect + openclaw (relayed by
-`@ryan`) converged on a P005-next recommendation.
+**Verified live (in the loop itself):** `@architect` and `@openclaw` each activated the other using
+full MXIDs (`was_mentioned: true` on receipt); bare-localpart attempts landed as flat text and did
+nothing. So **autonomous planner↔executor handoff works** — the human is not strictly required to
+relay, and a two-way loop between the agents is possible. (`contextVisibility:"all"` is what lets
+the triggered bot also *read* the other's message, not just be pinged.)
 
-> Optional knob — autonomous handoff: add `mentionPatterns` regex for the bot handles (channel
-> `mentionPatterns` policy scopes the global `groupChat.mentionPatterns` array to rooms) so a bot's
-> text "@openclaw" counts as a mention. Deliberately **off** — manual relay is the chosen design.
+**Brakes — the human stays in control by convention + backstop, not a hard wall:**
+- **Kill-switch:** deliberately **omit the mention** — a final line with no full-MXID mention ends
+  the chain. (Demonstrated live: step-3 "no mention" terminated a test loop.)
+- **`botLoopProtection`** — 20 accepted bot-pair msgs / 60 s, then 60 s cooldown (runaway backstop).
+- **`requireMention: true`** — nothing fires without a mention at all.
+- **Agent SOUL discipline** — architect/openclaw can be instructed in their identity not to mention
+  each other unless told, keeping `@ryan` the initiator. This is the *soft* gate. For a *hard* gate,
+  withhold the other bot's full MXID from context or tighten policy.
+
+> **Correction:** an earlier version of this doc claimed bots *couldn't* trigger each other. That
+> was a **format misdiagnosis** — bare localpart (inert) vs full MXID (real pill) — overturned by
+> live testing. `mentionPatterns` (regex) could make bare "@name" count too, but it's unnecessary
+> since full MXIDs already work.
 
 ---
 
@@ -193,6 +200,10 @@ API with each bot's token (one-time per room). Watch for:
   token (from `~/.openclaw/secrets/`). Confirm via CT171 `local_current_membership`.
 - **Mint/replace a bot token:** login against `localhost:8008` on CT171, then `scp -3` to the
   CT175 secrets file (600). Restart the gateway.
+- **Start a fresh bot session (clear context):** type **`/reset`** (or **`/new`**) in the room/DM.
+  Session is per-room, so without this a room accumulates context (bounded by the pruning TTL +
+  `historyLimit`, but a reset is the clean break). Multi-bot rooms: verify whether `/reset` resets
+  one bot or both — **TBD, experiment** (likely each bot acts on its own session).
 - **Add another gated room:** add a `channels.matrix.rooms["!id:…"]` entry (`allowBots:"mentions"`,
   `requireMention:true`), `openclaw config validate`, `openclaw gateway restart`.
 - **Restart after config edits:** `openclaw config validate && openclaw gateway restart`
