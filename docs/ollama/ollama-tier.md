@@ -107,10 +107,20 @@ the host's **32** threads. pve01's CPU is a **hybrid performance/efficiency-core
 so with only 4 cores the inference threads were likely scheduled onto slow E-cores.
 
 Fix: `pct set 172 -cores 16` (live, no reboot; persisted in `172.conf` and in the
-playbook). Result — embed latency **~7–10s → 0.22–0.48s** (a ~20–40× speedup, superlinear
-in core count, consistent with now spanning P-cores). End-to-end CLI `memory search` is
-~3.5s, but that is dominated by Node CLI cold-start; in-agent live recall (warm gateway)
-is ~sub-second.
+playbook). Result — embed latency **~7–10s → 0.06–0.89s** (superlinear in core count,
+consistent with now spanning P-cores). Confirmed by OpenClaw's own timing (CPU-only —
+Ollama reports `size_vram: 0`):
+
+| metric | before (4 cores) | after (16 cores) |
+|---|---|---|
+| direct embed | ~7–27s* | 0.06–0.89s |
+| end-to-end `memory search` (warm gateway) | 10.78s | **0.99s** (~11×) |
+
+\* The worst initial figure (~27s) was inflated by CPU contention with the *still-running*
+index build; the fair post-index baseline was 10.78s. The 0.99s end-to-end is the warm
+in-gateway path — what the agent actually pays on recall. (A cold `openclaw memory search`
+CLI invocation is ~3.5s, but that is Node CLI startup, not embedding, and the running
+agent never pays it.)
 
 > Open optimization (idea, not done): **pin CT172 to P-cores** via
 > `lxc.cgroup2.cpuset.cpus` in `172.conf` for consistent low latency on the hybrid CPU.
