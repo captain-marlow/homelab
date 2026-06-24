@@ -28,7 +28,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | D002 | Phase 5 `.env` work (re-home Telegram token; drop Google web-search `.env` dup) | openclaw | deferred | control-channel token last, one at a time |
 | D003 | Proxmox maintenance agent (on Mac/Hermes, SSH-direct, read/propose-first) | proxmox | queued | depends on Hermes; stays off Proxmox by principle |
 | D004 | Local Whisper (replaces paid Whisper key) | proxmox | queued | deployed last, via the Proxmox agent |
-| D005 | Semantic dispatcher skill (manual routing until then) | openclaw | idea | build once there's a mixed task list to route |
+| D005 | OpenClaw router expansion + local cheap-generation tier — add small chat model(s) to CT172 (prove on boring tests first), then expand OpenClaw's router so it orchestrates by role: cheap/high-frequency work (heartbeat, classification, routing hints) → local Ollama models; heavy reasoning → cloud (Opus/gpt-5.5/Sonnet); execution (e.g. ansible deploy) → Hermes. Semantic routing can use the P005 embeddings. The embedding model aids *deciding*; a local chat model does the cheap *generating* — distinct roles. | openclaw/ollama | idea | manual routing until then; build once there's a mixed task list to route. Pairs with build-plan Step 3; subsumes the old "semantic dispatcher skill" framing |
 | D006 | Consolidate old Proxmox notes into docs/proxmox | proxmox | queued | ongoing compilation |
 
 ---

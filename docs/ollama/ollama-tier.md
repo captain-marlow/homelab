@@ -147,9 +147,15 @@ dataset is detached first).
 
 ## Open items / future
 
-- **Small chat model on this tier** — heartbeat/classification offload (build-plan Step 3).
-  Models load on demand; 36 GB ceiling sized for it. Then the "architect on a local
-  model" decision can be made empirically (see `ideas.md`).
+- **Small chat model + router expansion (D005)** — add small chat model(s) to this tier
+  (heartbeat/classification offload, build-plan Step 3; models load on demand, 36 GB
+  ceiling sized for it), then expand OpenClaw's router to orchestrate **by role**:
+  cheap/high-frequency → local Ollama chat model; heavy reasoning → cloud
+  (Opus/gpt-5.5/Sonnet); execution → Hermes. Note the distinct jobs: the **embedding
+  model decides** (it can power semantic routing, the same "nearest-meaning" trick as
+  memory), a **local chat model generates** the cheap responses. "Architect on a local
+  model" is *not* a target — frontier reasoning is out of a CPU-local model's class;
+  keep it on Opus (see `ideas.md`). GPU is the unlock for larger local models.
 - **Open WebUI** — optional browser chat front-end, once there's a chat model (`ideas.md`).
 - **P-core pinning** — see Performance note above (`ideas.md`).
 - **architect semantic memory over the repo** — would need `memorySearch.extraPaths`.
