@@ -34,7 +34,7 @@ Created with `openclaw agents add architect --agent-dir … --workspace … --mo
   "sandbox": { "workspaceAccess": "ro" },
   "tools": {
     "profile": "minimal",
-    "alsoAllow": ["read", "message"],
+    "alsoAllow": ["read", "message", "web_fetch"],
     "deny": ["group:runtime", "write", "edit", "apply_patch"],
     "exec": { "mode": "deny" },
     "fs": { "workspaceOnly": true }
@@ -42,8 +42,13 @@ Created with `openclaw agents add architect --agent-dir … --workspace … --mo
 }
 ```
 
-**Effective tool set, confirmed live in the agent's system-prompt report: `read`, `message`,
-`session_status`. No exec, no write.**
+**Effective tool set, confirmed live: `read`, `message`, `web_fetch`, `session_status`. No exec,
+no write.** `web_fetch` was added in **P009 (2026-06-25)** to give the planner **read-only web
+access** (read docs/repos/forums while planning). It's a **keyless, in-process HTTP GET** — *not*
+the chromium browser, no subprocess — so it's a *read*, not a mutation, and the read-only/deny-exec
+posture is fully intact. It is **not** part of `group:runtime` (= `exec`/`process`/`code_execution`),
+so the existing `deny` left it allowable; **verified live** (architect fetched `example.com`, 200).
+Fetched content is treated as **untrusted** (prompt-injection surface) per the SOUL.
 
 ### Why this policy (least-privilege + defense-in-depth)
 - `profile: minimal` grants only `session_status`; `alsoAllow: [read, message]` opens a *closed*
