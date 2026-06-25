@@ -10,5 +10,6 @@
   "MD048": { "style": "backtick" },
   "MD036": false,
   "MD040": false,
-  "MD033": false
+  "MD033": false,
+  "MD060": false // OFF for now: STYLE.md §4 allows both hand-aligned and auto-formatted tables. Revisit (see ideas.md).
 }
