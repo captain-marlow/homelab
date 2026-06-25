@@ -84,6 +84,7 @@ And the plugin entry: `plugins.entries.matrix = { "enabled": true }`.
 ## Gotchas (the hard-won part)
 
 ### The CLI is read-only by design → edit config directly, don't use `channels add`
+
 The local CLI on CT175 is paired with `operator.read` only (deliberate hardening; the
 `chmod 700 ~/.openclaw` + "CLI scope-upgrade warning consciously deferred" items from the build
 plan). Any gateway-mediated write (`channels add`, `secrets.resolve`) triggers a **scope-upgrade

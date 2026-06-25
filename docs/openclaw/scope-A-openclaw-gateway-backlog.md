@@ -19,6 +19,7 @@
 ### 1. Local Whisper (was item 4)
 
 Replace the paid `OPENAI_WHISPER_API_KEY` (`sk-sv…`) transcription dependency with a local model (whisper.cpp or faster-whisper).
+
 - **Note:** likely wants its own LXC. The *building* of that LXC is where this scope brushes against Scope B — but the Whisper setup itself (pick model, wire transcription path, test on a real voice note, remove the key) belongs here.
 - Decision pending: build the Whisper LXC manually (lower risk) vs. via an agent (Scope B territory).
 
