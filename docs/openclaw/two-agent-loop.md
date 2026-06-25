@@ -200,18 +200,27 @@ API with each bot's token (one-time per room). Watch for:
   token (from `~/.openclaw/secrets/`). Confirm via CT171 `local_current_membership`.
 - **Mint/replace a bot token:** login against `localhost:8008` on CT171, then `scp -3` to the
   CT175 secrets file (600). Restart the gateway.
-- **Start a fresh bot session (clear context):** send **`/reset`** (single slash) with the target
-  bot mentioned. **Confirmed live:** Element passes it through; the *runtime* consumes it as a
-  command (the model never runs — no "typing"), archives the old transcript, and starts a fresh
-  session. Caveats:
-    - **No visible acknowledgment** — the reset is silent (a bug; the "✅ Session reset" ack isn't
-      delivered). openclaw confirmed via runtime/logs that the reset *did* happen.
-    - **`//reset` (double slash) is NOT a command** — it reaches the model as literal text and does
-      nothing. Use the single slash.
-    - **Per-bot** in a group room — mention the specific bot to reset only its session.
-    - **The architect can't self-confirm a reset** — the reset wipes the context that would prove
-      it (it may even deny it reset). Verify via **openclaw / logs**, never by asking the architect.
-    - `/new` likely also works (untested); `/reset` is the confirmed one.
+- **Resetting a bot session — do it server-side, NOT via chat.** Matrix has **no native
+  reset/clear** (matrix-spec #1333 is a years-open feature request), so a session reset is purely a
+  *bot-runtime* action. **Chat `/reset` in this group room is unreliable**: Element handles slashes
+  client-side (and `//` escapes to a *literal* `/`), and with three bots present the command routes
+  ambiguously. **Live test (2026-06-25): the OpenClaw bots did NOT reset in the Drafting Table.**
+  And asking the architect "did you reset?" is worthless — a real reset wipes the proof, and it may
+  even deny it. Use the runtime instead:
+    - **Hermes:** clean CLI — `hermes sessions list` → `hermes sessions delete <id>` (or
+      `hermes sessions prune`). Run when Hermes is idle, not mid-turn.
+    - **OpenClaw (architect / main):** **no clean targeted-reset CLI or RPC** — `openclaw gateway
+      call` exposes no callable `session.reset` (it's only a config-policy key); the only built-in
+      trigger is the flaky chat path. But they **auto-prune** context (20-min TTL) and re-read the
+      repo each session, so **between projects they effectively self-reset** — an explicit reset is
+      rarely needed. Hard reset (e.g. to force a SOUL reload after editing it) = clear that room's
+      entry from `agents/<id>/sessions/sessions.json` (stop gateway → edit → restart).
+    - **DMs:** `//reset` works in a 1:1 DM (Element escapes to a literal `/reset`; one bot consumes
+      it) — but a **DM session is separate from the room session**, so a DM reset does *not* reset
+      the Drafting Table session.
+  > **Correction:** an earlier version of this doc claimed `/reset` (single slash) reliably resets
+  > in-room via the runtime, with `//reset` inert. Live testing disproved both halves for the group
+  > room — the reset reality is as above.
 - **Add another gated room:** add a `channels.matrix.rooms["!id:…"]` entry (`allowBots:"mentions"`,
   `requireMention:true`), `openclaw config validate`, `openclaw gateway restart`.
 - **Restart after config edits:** `openclaw config validate && openclaw gateway restart`
