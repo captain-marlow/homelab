@@ -1,6 +1,6 @@
 # Documentation Style Guide — house conventions for the homelab repo (P007)
 
-**Status: draft (P007 Step 1 complete, 2026-06-25). Voice section pending architect input.**
+**Status: draft (P007 Steps 1 + voice complete, 2026-06-25). Linters pending (Steps 2-3).**
 
 This guide codifies the style already in use across the repo. It is descriptive of what
 exists, not prescriptive of a new style. When in doubt, follow the nearest existing doc
@@ -133,8 +133,44 @@ step-completion records it writes.
 
 ## 7. Voice and verbosity norms
 
-TODO: pending voice analysis (architect to supply from sample docs)
+Voice is anchored on Ryan's hand-written originals (`docs/meta/_voice-samples/proxy-orig--*`),
+not on later collaboratively-edited docs. Keep the *texture* below; drop the working-notes
+mess (stray TODOs, raw link-dumps, typos).
 
-<!-- This section will capture the broader prose voice and verbosity norms for all docs
-in this repo, derived from sample documents nominated by the architect. It is
-intentionally left as a stub until that analysis is complete (Step 1.5 of P007). -->
+**One voice, two registers.** The voice is constant; verbosity and where-the-"why"-lives
+differ by doc type (per the `setup/` vs `knowledge-base/` split in `README.md`):
+
+- **`setup/`** — a short, to-the-point tutorial a human can follow along to replicate the
+  build in their own homelab. When a technical decision is made, state the reasoning in
+  **one plain sentence plus a link to `knowledge-base/`** for the depth — don't inline the
+  full rationale.
+- **`knowledge-base/`** — the technical depth and design decisions (e.g. privileged vs
+  unprivileged LXCs, UID/GID mapping, auth rationale) plus reference links. This is where
+  the reason-aloud teaching runs long.
+
+Texture (applies to both registers):
+
+- **Teach by reasoning, not just instructing.** Define a thing, then immediately say *why*
+  it works that way and give a concrete example. Don't state a step without its rationale
+  when the rationale is non-obvious.
+- **Concrete example right after the abstract claim.** Every general rule earns a specific
+  instance — a command, a path, a number. Prefer `chown -R 1000:1000 /mnt/media` over
+  "set appropriate ownership."
+- **First-person plural, walking the reader through.** "We'll use Turnkey Core," "in our
+  case," "let's create a dataset." A guide you're walking beside someone on, not a spec
+  sheet.
+- **Bold the procedural pivots.** **First**, **Second**, **Don't**, **Note:** — bold the
+  words that carry the procedure's turning points and warnings.
+- **State the deliberate choice and why.** When a decision was made for a reason ("Using
+  SATA for the OS is deliberate. It preserves the NVMe slots..."), say so plainly. Name the
+  rejected alternative when it clarifies.
+- **Be honest about uncertainty — but resolve it before it ships.** Don't fake false
+  confidence; don't leave a literal "or whatever" either. If something is genuinely open,
+  mark it explicitly with a `>` callout rather than burying live debate in prose.
+- **Verbosity: as long as the reasoning needs, no longer.** Short where a step is obvious;
+  expanded where a choice has consequences.
+- **No marketing voice.** Plain, direct, slightly informal. "This is the most basic option"
+  — not "leverage this powerful feature."
+
+> The architect's own response style (§6) is the terser subset of this — same reason-first,
+> honest instinct, fewer words, for chat/planning rather than tutorials.
