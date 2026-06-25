@@ -80,7 +80,7 @@ Plus the token's secrets provider (mirrors `matrix_openclaw_token_file`):
 ```
 
 Plus the routing binding (top-level `bindings[]`, written by `openclaw agents bind --agent
-architect --bind matrix:architect` — **no scope wall**, unlike `channels add`):
+architect --bind matrix:architect` (**no scope wall**, unlike `channels add`):
 
 ```json
 "bindings": [ { "type": "route", "agentId": "architect", "match": { "channel": "matrix", "accountId": "architect" } } ]
@@ -137,6 +137,7 @@ relay, and a two-way loop between the agents is possible. (`contextVisibility:"a
 the triggered bot also *read* the other's message, not just be pinged.)
 
 **Brakes — the human stays in control by convention + backstop, not a hard wall:**
+
 - **Kill-switch:** deliberately **omit the mention** — a final line with no full-MXID mention ends
   the chain. (Demonstrated live: step-3 "no mention" terminated a test loop.)
 - **`botLoopProtection`** — 20 accepted bot-pair msgs / 60 s, then 60 s cooldown (runaway backstop).
@@ -157,7 +158,7 @@ the triggered bot also *read* the other's message, not just be pinged.)
 **Finding (hard-won):** Synapse `POST /_matrix/client/v3/login` (`m.login.password`) returns
 **403 M_FORBIDDEN via the public URL** (`https://matrix.ryankennedy.dev` → NPM/CT110) for the
 bot accounts, but the **same login succeeds against `http://localhost:8008` on CT171**.
-Token-authenticated requests (sync, whoami, send) work fine via the public URL — only
+Token-authenticated requests (sync, whoami, send) work fine via the public URL. Only
 unauthenticated password-login is rejected on that path. Root cause not yet diagnosed
 (Element login works for `@ryan`); logged as a follow-up.
 
@@ -207,17 +208,17 @@ API with each bot's token (one-time per room). Watch for:
   ambiguously. **Live test (2026-06-25): the OpenClaw bots did NOT reset in the Drafting Table.**
   And asking the architect "did you reset?" is worthless — a real reset wipes the proof, and it may
   even deny it. Use the runtime instead:
-    - **Hermes:** clean CLI — `hermes sessions list` → `hermes sessions delete <id>` (or
-      `hermes sessions prune`). Run when Hermes is idle, not mid-turn.
-    - **OpenClaw (architect / main):** **no clean targeted-reset CLI or RPC** — `openclaw gateway
-      call` exposes no callable `session.reset` (it's only a config-policy key); the only built-in
-      trigger is the flaky chat path. But they **auto-prune** context (20-min TTL) and re-read the
-      repo each session, so **between projects they effectively self-reset** — an explicit reset is
-      rarely needed. Hard reset (e.g. to force a SOUL reload after editing it) = clear that room's
-      entry from `agents/<id>/sessions/sessions.json` (stop gateway → edit → restart).
-    - **DMs:** `//reset` works in a 1:1 DM (Element escapes to a literal `/reset`; one bot consumes
-      it) — but a **DM session is separate from the room session**, so a DM reset does *not* reset
-      the Drafting Table session.
+  - **Hermes:** clean CLI — `hermes sessions list` → `hermes sessions delete <id>` (or
+    `hermes sessions prune`). Run when Hermes is idle, not mid-turn.
+  - **OpenClaw (architect / main):** **no clean targeted-reset CLI or RPC** — `openclaw gateway
+    call` exposes no callable `session.reset` (it's only a config-policy key); the only built-in
+    trigger is the flaky chat path. But they **auto-prune** context (20-min TTL) and re-read the
+    repo each session, so **between projects they effectively self-reset** — an explicit reset is
+    rarely needed. Hard reset (e.g. to force a SOUL reload after editing it) = clear that room's
+    entry from `agents/<id>/sessions/sessions.json` (stop gateway → edit → restart).
+  - **DMs:** `//reset` works in a 1:1 DM (Element escapes to a literal `/reset`; one bot consumes
+    it) — but a **DM session is separate from the room session**, so a DM reset does *not* reset
+    the Drafting Table session.
   > **Correction:** an earlier version of this doc claimed `/reset` (single slash) reliably resets
   > in-room via the runtime, with `//reset` inert. Live testing disproved both halves for the group
   > room — the reset reality is as above.

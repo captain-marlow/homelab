@@ -2,7 +2,7 @@
 
 **Project lineage:** continuation of the 2026-06-21 failover & auth-hardening work on the `openclaw` LXC.
 **Host:** `openclaw` LXC (Proxmox CT, Debian, static `192.168.1.175`), OpenClaw 2026.6.8.
-**Purpose:** finish the remaining items from the original session — the operational durability, security, and cost work on the *existing single gateway*. This scope is about making the brain you already have solid. (The Mac/Obsidian/Proxmox homelab-agent vision is a separate project — see Scope B.)
+**Purpose:** finish the remaining items from the original session: the operational durability, security, and cost work on the *existing single gateway*. This scope is about making the brain you already have solid. (The Mac/Obsidian/Proxmox homelab-agent vision is a separate project; see Scope B.)
 
 ---
 
@@ -17,20 +17,25 @@
 ## Remaining backlog (this scope)
 
 ### 1. Local Whisper (was item 4)
+
 Replace the paid `OPENAI_WHISPER_API_KEY` (`sk-sv…`) transcription dependency with a local model (whisper.cpp or faster-whisper).
 - **Note:** likely wants its own LXC. The *building* of that LXC is where this scope brushes against Scope B — but the Whisper setup itself (pick model, wire transcription path, test on a real voice note, remove the key) belongs here.
 - Decision pending: build the Whisper LXC manually (lower risk) vs. via an agent (Scope B territory).
 
 ### 2. Local Ollama tier (was deferred #1)
-A 4th, *unkillable* fallback under Gemini — can't expire, revoke, rate-limit, or 503. The structural answer to the triple-failure event. 64GB host can run a strong quantized model. This is the highest-value durability item.
+
+A 4th, *unkillable* fallback under Gemini (can't expire, revoke, rate-limit, or 503). The structural answer to the triple-failure event. 64GB host can run a strong quantized model. This is the highest-value durability item.
 
 ### 3. Full SecretRef migration (was deferred #2)
-Migrate remaining plaintext secrets (Telegram token, gateway token, Whisper key, web-search key) to file-backed SecretRefs → goal `openclaw secrets audit --check clean`. The Gemini key (already done) is the template. **Careful:** some are load-bearing for the control channel — migrate one at a time, verify, keep timestamped backups.
+
+Migrate remaining plaintext secrets (Telegram token, gateway token, Whisper key, web-search key) to file-backed SecretRefs → goal `openclaw secrets audit --check clean`. The Gemini key (already done) is the template. **Careful:** some are load-bearing for the control channel, so migrate one at a time, verify, keep timestamped backups.
 
 ### 4. OAuth keepalive for `claude-cli` (was item 6 watch / deferred)
+
 Now that PATH is fixed and the leg is executable, decide whether to keep the OAuth fallback warm. Options: cron job or heartbeat hook that pings `claude` on a sub-8h cadence. **Open precondition is now cleared** (binary on PATH). Strategic question still stands: is reviving a decay-prone spare worth it when the durable token leads? Possibly skip entirely and just prune the dead `claude-cli/*` model rows from config.
 
 ### 5. MEMORY.md routing policy (was deferred #5)
+
 Record routing/auth policy as durable bot instructions now that the chain is settled.
 
 ---

@@ -1,13 +1,13 @@
 # Homelab AI Agents — Concepts Reference
 
 **Date:** 2026-06-21
-**Purpose:** The concepts learned while planning a homelab agent setup — what agents, gateways, and the connecting protocols actually are. Companion to the build-plan document.
+**Purpose:** The concepts learned while planning a homelab agent setup: what agents, gateways, and the connecting protocols actually are. Companion to the build-plan document.
 
 ---
 
 ## 1.1 Models vs. agents
 
-A **model** (Sonnet, Opus, GPT) is text-in, text-out. Chatting in the browser or app is talking to a model turn by turn — no loop, no tools acting on their own.
+A **model** (Sonnet, Opus, GPT) is text-in, text-out. Chatting in the browser or app is talking to a model turn by turn, with no loop and no tools acting on their own.
 
 An **agent** wraps a model in a **reason → act → observe → repeat** loop and gives it **tools**. The model is the brain, the tools are the hands, the loop lets it work toward a goal instead of replying once. A chatbot tells you how to fix a bug; an agent reads the code, edits the file, runs the tests, sees them pass, and reports back.
 
@@ -39,7 +39,7 @@ Coding agents are mostly model-agnostic harnesses but gravitate to frontier mode
 
 Compact: **MCP gives an agent tools; ACP lets an agent drive another agent; an OpenAI-compatible endpoint lets anything drive the gateway as a model.** Three seams, three jobs.
 
-**Trust caveat (applies to MCP servers especially):** a server can run shell commands, read files, or hit external services on the agent's behalf. Connecting one is a real security decision — same as installing any software with those permissions, especially community-published ones.
+**Trust caveat (applies to MCP servers especially):** a server can run shell commands, read files, or hit external services on the agent's behalf. Connecting one is a real security decision, the same as installing any software with those permissions, especially community-published ones.
 
 ## 1.6 OpenClaw architecture (two tiers)
 
@@ -63,6 +63,7 @@ Tier 1 — GATEWAY (one process, the switchboard)
 OpenClaw automates **mechanical** routing: model fallback chains and channel/account bindings. It does **not** automate **semantic** routing ("this is hard → Opus," "this is repo work → Claude Code"). That judgment must be encoded as a **dispatcher skill** where the model reads the task and chooses. There is no built-in semantic router.
 
 Three routing layers:
+
 1. **Hard routing** — channel/account/session bindings (source determines agent). Reliable but coarse.
 2. **Manual per-task** — you say "use Opus for this." Flexible, low-risk.
 3. **Semantic dispatcher** — `main` classifies a mixed task list and delegates. This is a skill you build, not a feature you toggle.
@@ -80,4 +81,3 @@ There is **no OpenClaw agent marketplace.** ClawHub is a skills/plugins hub. Age
 - **Don't over-provision agents.** One coordinator + specialists that are actually needed.
 
 ---
-

@@ -88,7 +88,7 @@ mkdir -p /mnt/media/{torrents/{incomplete,complete},usenet,movies,tv,music,books
 
 ## VI. Verification
 
-Before moving on to container creation, confirm that both datasets are mounted and their properties are set correctly. A misconfigured recordsize can't be changed after the dataset has data on it — you'd have to create a new dataset and migrate, so it's worth catching now.
+Before moving on to container creation, confirm that both datasets are mounted and their properties are set correctly. A misconfigured recordsize can't be changed after the dataset has data on it (you'd have to create a new dataset and migrate), so it's worth catching now.
 
 ```bash
 df -h | grep -E "(flash|tank)"
@@ -101,4 +101,4 @@ Expected output: `flash/docker` shows `16K`, `tank/media` shows `128K`. If eithe
 ---
 Proceed to the next file:
 
--> [03 — Storage and ZFS Layout](./02-storage-and-zfs-layout.md)
+-> [03 - Storage and ZFS Layout](./02-storage-and-zfs-layout.md)

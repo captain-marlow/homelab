@@ -1,3 +1,5 @@
+# Proxmox Setup
+
 ## I. Proxmox
 
 This guide covers the installation and setup of a **Proxmox VE** host. Proxmox VE is a Debian-based hypervisor that manages virtual machines and Linux containers (LXCs) through a web interface and CLI. It will help you install a fresh Proxmox VE install and turn it into the host described in this repository using the same storage layout, LXC conventions, Docker patterns, and automation model.
@@ -18,6 +20,7 @@ Following this section from start to finish will produce a Proxmox host with a p
 CT100 is the infrastructure container. It hosts Nginx Proxy Manager, Komodo Core, MongoDB, and a periphery agent. CT150 is the Servarr container. It hosts qBittorrent, Sonarr, Radarr, Lidarr, Prowlarr, and the shared `/data` layout used for downloads and media. Other containers will be added layer.
 
 The system is built around host ZFS datasets and bind mounts rather than container states and network shares. Docker Compose files define the application stacks, Ansible provisions the repeatable parts of the build, and Komodo handles runtime deployment and normal stack operations.
+
 ## III. Host Identity (pve01)
 
 This guide assumes that the host has the following values:
@@ -34,7 +37,6 @@ This guide assumes that the host has the following values:
 ## IV. Node Specific Hardware
 
 For hardware details specific to this host, see [Hardware/pve01.md](../Hardware/pve01.md). This guide references that the hardware mentioned on that page, although this guide could be followed on other similar hardware.
-
 
 ## I. ZFS Pool Architecture
 

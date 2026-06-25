@@ -12,12 +12,12 @@ OpenClaw's semantic memory was down. Embeddings defaulted to OpenAI
 `text-embedding-3-small`, but the only OpenAI credential is **Codex OAuth**, which is
 entitled to chat/completions and **not** embeddings — so every embed call returned
 `429 insufficient_quota`. This is an *entitlement gap*, not a rolling quota. The fix:
-host an open-weight embedding model locally and point OpenClaw at it — no paid key, no
+host an open-weight embedding model locally and point OpenClaw at it. No paid key, no
 cloud dependency, fully on-LAN. (A billed OpenAI key was the deliberately-rejected
 alternative: it would provision a paid dependency that this local tier makes redundant.)
 
 Scope was kept tight: **embeddings only**. The same box is intended to later host small
-chat models for cheap/high-frequency tasks (heartbeat, classification) — that is a
+chat models for cheap/high-frequency tasks (heartbeat, classification). That is a
 separate, future step, not part of P005.
 
 ---
@@ -118,9 +118,9 @@ Ollama reports `size_vram: 0`):
 
 \* The worst initial figure (~27s) was inflated by CPU contention with the *still-running*
 index build; the fair post-index baseline was 10.78s. The 0.99s end-to-end is the warm
-in-gateway path — what the agent actually pays on recall. (A cold `openclaw memory search`
+in-gateway path (what the agent actually pays on recall). A cold `openclaw memory search`
 CLI invocation is ~3.5s, but that is Node CLI startup, not embedding, and the running
-agent never pays it.)
+agent never pays it.
 
 > Open optimization (idea, not done): **pin CT172 to P-cores** via
 > `lxc.cgroup2.cpuset.cpus` in `172.conf` for consistent low latency on the hybrid CPU.

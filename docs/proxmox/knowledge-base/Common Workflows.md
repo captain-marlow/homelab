@@ -1,3 +1,5 @@
+# Common Workflows
+
 ## Common Operational Workflows
 
 This document collects the routine, repeatable operations you will perform while running this homelab. These are not one-time setup steps; they are the things you do _after_ the system exists.
@@ -10,7 +12,7 @@ The goal is to avoid re-deriving procedures from memory or reading multiple docu
 
 Example: adding a new service (e.g. `lazylibrarian`) to the Servarr stack.
 
-1. Edit the stack’s compose file on the control node:
+1. Edit the stack's compose file on the control node:
     - `pve01/servarr/docker-compose.yml`
 2. Define:
     - Image
@@ -19,11 +21,14 @@ Example: adding a new service (e.g. `lazylibrarian`) to the Servarr stack.
     - `PUID=1000`, `PGID=1000`, and `UMASK` where supported
 3. Commit the change to Git.
 4. Deploy using Komodo **or** manually:
+
 ```bash
 docker compose pull
 docker compose up -d
 ```
+
 1. Verify:
+
 ```bash
 docker ps
 docker logs <container>
@@ -141,12 +146,14 @@ Avoid running containers as root unless required.
 
 1. Stop the container(s) using the path
 2. Update Proxmox mount:
+
 ```bash
 pct set <CTID> -mpX <new-host-path>,mp=<ct-path>
 pct reboot <CTID>
 ```
+
 1. Update compose volumes if needed
-2. Restart containers    
+2. Restart containers
 
 ---
 

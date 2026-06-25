@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-22
 **Host:** `openclaw` LXC (Proxmox CT, Debian, static `192.168.1.175`)
-**Scope:** Completion record for Step 1 of the build plan (Finish OpenClaw config — the daily driver). Companion to the build-plan, concepts-reference, and failover-reference documents. Records what changed, what was decided and why, what is deferred, and what is being watched — so the reasoning does not have to be re-derived later.
+**Scope:** Completion record for Step 1 of the build plan (Finish OpenClaw config, the daily driver). Companion to the build-plan, concepts-reference, and failover-reference documents. Records what changed, what was decided and why, what is deferred, and what is being watched. This record ensures the reasoning does not have to be re-derived later.
 
 ---
 
@@ -20,6 +20,7 @@ Step 1 is **complete**. Every item is either done-and-verified, deliberately def
 | (Emergent) Recovery-notification skill | Applied — closes a demonstrated policy-vs-behavior gap. |
 
 Canonical file hashes at close:
+
 - `MEMORY.md`: `37aa1ff1c0df1a9db8db1d47c03629c030c52861cd0a76c86ded944986d2d4bd`
 - `OPEN-ISSUES.md`: `e87015e983b36e2914c3f41738639c08df44fd51059f793b3086b80dd8ddd809`
 - `openclaw.json`: `653038473d8259924887e5f33a20f731d3f4a7e4346275621c9aa92818eb6421` (`config validate` passed)
@@ -30,21 +31,25 @@ Canonical file hashes at close:
 ## 1. What changed
 
 ### Memory / planning split
+
 - Durable policy lives in `~/.openclaw/workspace/MEMORY.md` (the boot file OpenClaw loads for normal sessions — confirmed live, not assumed).
 - Transient open-issues / roadmap live in `~/.openclaw/workspace/OPEN-ISSUES.md`, with a one-line pointer from `MEMORY.md`.
 - `MEMORY.md` now carries a consolidated **Routing & Auth Policy**: per-task routing rules, failover behavior (auto-switch on usage/rate limit, auto-recover, announce once per state change), and the auth design rationale (prefer subscription/OAuth primary; cross-provider fallbacks; durable static token on the intermittent Anthropic leg).
 - The raw daily log `memory/2026-06-21.md` was left untouched (dedupe is a tracked follow-up, deliberately out of scope).
 
 ### Filesystem hardening
+
 - `~/.openclaw` → `700 openclaw:openclaw` (confirmed sole owner is the gateway service user before applying; revert path recorded).
 - `~/.openclaw/secrets` → `700`; secret files `gateway-token.txt` and `google-websearch-api-key.txt` → `600`.
 
 ### CLI scope-upgrade decision
+
 - The normal CLI device remains at `operator.read`. Its scope-upgrade request bundled `operator.pairing` (device-approval authority) beyond the `operator.admin` actually needed.
 - Admin gateway operations (`secrets.resolve` / `secrets.reload`) were run through the reserved direct-loopback backend path (`gateway-client` / `backend`, token-authenticated, `operator.admin`) instead of granting the bundle.
 - The recurring doctor `scope upgrade pending approval` warning is **accepted**, not unresolved — there is a working admin route that does not require widening the device's authority.
 
 ### SecretRef migration
+
 - **Google web-search key** migrated to a file-backed SecretRef:
   - config key `plugins.entries.google.config.webSearch.apiKey` → `SecretRef(file, provider=google_websearch_key_file)`
   - secret file `~/.openclaw/secrets/google-websearch-api-key.txt` (`600`)
@@ -62,10 +67,12 @@ Canonical file hashes at close:
 Audit at close: **1 plaintext finding** (the accepted Anthropic token), 0 unresolved refs, 0 shadowed refs, 2 legacy OAuth residues (out of static-SecretRef scope).
 
 ### Context pruning
+
 - Single change applied: `agents.defaults.contextPruning.ttl` `1h → 20m`. Ratios (`softTrimRatio`, `hardClearRatio`) and `keepLastAssistants` deliberately held as control.
 - Live without restart: the reload path is `kind: none`; the running gateway updated its in-process config snapshot and builds pruning settings from it at run setup, so the new TTL applies to new turns.
 
 ### Model-recovery notification skill (emergent)
+
 - Drafted in response to an observed failure: OpenAI rate-limited → Sonnet fallback (confirmed live), but the promised switch-**back** notification never fired. The promise had no durable mechanism behind it.
 - Applied as skill `model-recovery-notification` (status `ready`, scan clean). It creates one durable cron/commitment per cooldown event, runs a live status check before notifying, sends exactly one recovery notice (dedupe key = provider/model + reset timestamp; no spam on flapping), and requires verifying the job exists (`openclaw cron list` / `commitments`) before notification can be promised.
 - `MEMORY.md` updated to record the mechanism as active durable behavior.
@@ -74,17 +81,17 @@ Audit at close: **1 plaintext finding** (the accepted Anthropic token), 0 unreso
 
 ## 2. What was decided, and why
 
-**Anthropic default token stays plaintext (accepted, not pending).** OpenClaw's SecretRef subsystem resolves config-key paths only, not auth-profile rows in the SQLite auth store. Forcing a ref into the profile would make the resolver send the literal ref-string to Anthropic as the token — i.e. the migration would actively break auth. The token is static (no refresh lifecycle), non-control, and now sits in a `700` dir unreadable by other service users. "Secrets not exposed" is the real goal; "audit shows zero" is the metric. Optimizing the metric here would break the thing. Revisit only if OpenClaw adds auth-profile SecretRef support.
+**Anthropic default token stays plaintext (accepted, not pending).** OpenClaw's SecretRef subsystem resolves config-key paths only, not auth-profile rows in the SQLite auth store. Forcing a ref into the profile would make the resolver send the literal ref-string to Anthropic as the token (i.e., the migration would actively break auth). The token is static (no refresh lifecycle), non-control, and now sits in a `700` dir unreadable by other service users. "Secrets not exposed" is the real goal; "audit shows zero" is the metric. Optimizing the metric here would break the thing. Revisit only if OpenClaw adds auth-profile SecretRef support.
 
-**Gateway token relocated same-value, not rotated.** This is the control-channel token; rotating it mid-migration would introduce circular-auth risk (the backend verification path authenticates *with* this token). Same-value relocation proved the SecretRef path without ever changing the live credential, so there was no window where a wrong credential was in flight. Consequence recorded honestly: residue cleanup *reduced* exposure but did not make the token "truly clean" — the retained backups and any freed disk blocks still hold the live value. True cleanup requires a future rotation (see §3).
+**Gateway token relocated same-value, not rotated.** This is the control-channel token; rotating it mid-migration would introduce circular-auth risk (the backend verification path authenticates *with* this token). Same-value relocation proved the SecretRef path without ever changing the live credential, so there was no window where a wrong credential was in flight. Consequence recorded honestly: residue cleanup *reduced* exposure but did not make the token "truly clean." The retained backups and any freed disk blocks still hold the live value. True cleanup requires a future rotation (see §3).
 
-**Backend path over the pairing grant.** `secrets.resolve`/`reload` need `operator.admin`, not `operator.pairing`. The CLI's bundled request included pairing (device-approval authority) — broader than the task. Since the loopback backend path provides admin without widening the device, granting pairing would have been authority bought for no benefit. Least privilege held.
+**Backend path over the pairing grant.** `secrets.resolve`/`reload` need `operator.admin`, not `operator.pairing`. The CLI's bundled request included pairing (device-approval authority), which was broader than the task. Since the loopback backend path provides admin without widening the device, granting pairing would have been authority bought for no benefit. Least privilege held.
 
-**Embeddings deferred to the Ollama tier.** Root cause corrected during diagnosis: embeddings default to OpenAI `text-embedding-3-small`, but the only OpenAI auth is Codex OAuth, which covers chat/completions and **not** embeddings — an entitlement gap, not a rolling quota (the earlier Gemini-collision theory was investigated and ruled out). Standing up a separate billed OpenAI embeddings key would provision a dependency that the local Ollama tier (Step 2) is designed to make redundant. So: defer, run on curated `MEMORY.md` + keyword/`rg` search, and host embeddings locally once Ollama is proven. A billed key is the fallback only if semantic memory is needed sooner.
+**Embeddings deferred to the Ollama tier.** Root cause corrected during diagnosis: embeddings default to OpenAI `text-embedding-3-small`, but the only OpenAI auth is Codex OAuth, which covers chat/completions and **not** embeddings (an entitlement gap, not a rolling quota; the earlier Gemini-collision theory was investigated and ruled out). Standing up a separate billed OpenAI embeddings key would provision a dependency that the local Ollama tier (Step 2) is designed to make redundant. So: defer, run on curated `MEMORY.md` + keyword/`rg` search, and host embeddings locally once Ollama is proven. A billed key is the fallback only if semantic memory is needed sooner.
 
-**One-variable pruning tuning.** Workload data (recent percentiles; max observed `237k/272k` ≈ 87%) showed the real problem was `ttl: 1h` letting active multi-turn work climb toward the context ceiling — not the pressure ratios. There was no evidence the ratios were misfiring (the marker split was ~175 hard-clear vs 4 soft-trim, so soft-trim wasn't the active mechanism). Changing one knob keeps a live feedback loop legible: if peaks drop and cache-read holds, done; if not, ratios are the next lever — with evidence.
+**One-variable pruning tuning.** Workload data (recent percentiles; max observed `237k/272k` ≈ 87%) showed the real problem was `ttl: 1h` letting active multi-turn work climb toward the context ceiling, not the pressure ratios. There was no evidence the ratios were misfiring (the marker split was ~175 hard-clear vs 4 soft-trim, so soft-trim wasn't the active mechanism). Changing one knob keeps a live feedback loop legible: if peaks drop and cache-read holds, done; if not, ratios are the next lever, with evidence.
 
-**Recovery-notification skill approved.** The live failure showed a real gap between stated policy ("announce once per state change") and behavior (the switch-back announcement didn't fire). The skill patches it structurally: the promise of notification is not allowed to exist until a durable, verified job backs it. The verification requirement is the key property — it makes the mechanism prove itself rather than be asserted.
+**Recovery-notification skill approved.** The live failure showed a real gap between stated policy ("announce once per state change") and behavior (the switch-back announcement didn't fire). The skill patches it structurally: the promise of notification is not allowed to exist until a durable, verified job backs it. The verification requirement is the key property. It makes the mechanism prove itself rather than be asserted.
 
 ---
 
@@ -93,6 +100,7 @@ Audit at close: **1 plaintext finding** (the accepted Anthropic token), 0 unreso
 **Blocking for Step 2:** none. The Ollama LXC work is cleanly independent of current foundation state.
 
 **Non-blocking, tracked in `OPEN-ISSUES.md`:**
+
 - Semantic memory unavailable until embeddings exist; preferred path is local Ollama embeddings after proof. `openclaw memory search` CLI can exit `0` with empty results after an embedding failure — empty is **not** proof of absence; use `memory_search` tool errors or direct `rg`/file reads as ground truth.
 - **Gateway-token rotation** deferred (loopback-only, `700` dir, low exposure) but is the matched closing step to the same-value relocation: when it happens, also scrub/regenerate the two retained Phase 6 backups and consider session-log pruning. Until then, residue cleanup is "reduced exposure," not "eliminated."
 - **Phase 5 `.env` work** (not done this session): re-home `TELEGRAM_BOT_TOKEN` (control-channel, do last/one-at-a-time); remove the `GOOGLE_WEBSEARCH_API_KEY` `.env` duplicate (config SecretRef already authoritative); `OPENAI_WHISPER_API_KEY` deferred until local Whisper. Run `openclaw secrets audit --check` after.

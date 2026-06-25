@@ -3,7 +3,7 @@
 **Status: P006 COMPLETE.** Steps **a** (standalone), **b** (repo integration), and **c** (into the
 Matrix loop) are all **DONE and verified (2026-06-24/25)**. `@hermes` is a live, E2EE, mention-gated
 participant in the Drafting Table room alongside `@openclaw`/`@architect`. This is the institutional
-version of the role Claude Code plays manually now — the Mac is the read-write executor + git-push
+version of the role Claude Code plays manually now. The Mac is the read-write executor + git-push
 node. Hermes is a hard dependency for **P008** (docs sort pass needs a central read-write executor;
 the architect is pull-only, `@openclaw` write is deferred).
 
@@ -33,7 +33,7 @@ SHA doesn't match the lockfile). On this Mac it reused the system Node 24, rg, a
 `2026.3.13` local shell** (iMessage/LINE channels, single Sonnet model, plaintext keys), **not** the
 CT175 daily-driver. `hermes claw migrate --dry-run` confirmed it would import ~nothing (`no model
 providers found`). The rich config lives on CT175, and its auth (Codex OAuth / Max setup-token /
-file SecretRefs) doesn't transplant anyway — so we configured Hermes directly. **The March Mac
+file SecretRefs) doesn't transplant anyway, so we configured Hermes directly. **The March Mac
 OpenClaw install was then deleted** (`~/.openclaw` + the pnpm `openclaw` package; pnpm itself left
 intact). Its plaintext keys (gateway token, 2× Gemini, 2× OpenAI `sk-proj`) sat unencrypted. **The
 on-disk copies are now gone** (`~/.openclaw`, the pnpm package, and the scratch tarball all deleted;
@@ -93,7 +93,7 @@ Claude's working clone (`git pull --ff-only`) and the architect's on CT175
 **Three clones now exist** (was one): Claude's working clone, **Hermes's read-write clone**, and the
 architect's read-only clone on CT175. **Post-push discipline:** origin is the single source of
 truth; after any push (by anyone), refresh the other clones. Git is still authored by both Claude
-and Hermes now — distinguish by commit author.
+and Hermes now. Distinguish by commit author.
 
 **Adjacent Ansible work** tagged to this track (open, lower priority, see `ideas.md`): auto-register
 new LXCs in `~/.ssh/config`; an LXC baseline-hardening role.
@@ -188,7 +188,7 @@ passive-room-context knob (`fetch_history` exists but has no automatic caller). 
 "see" undirected room chatter; it sees only what's pilled to it. Verified live: it could not quote
 back a plain (non-pill) message from `@architect`.
 
-This does **not** block the loop — the planner→executor handoff is *directed*, and works both ways:
+This does **not** block the loop. The planner→executor handoff is *directed*, and works both ways:
 
 - **Planner → Hermes:** the planner must emit the **full MXID** `@hermes:matrix.ryankennedy.dev`
   (which the gateway converts to a real `m.mentions` pill). A **bare `@hermes`** is inert text and

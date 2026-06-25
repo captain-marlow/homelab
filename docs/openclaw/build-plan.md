@@ -4,6 +4,7 @@
 **Purpose:** The concrete build plan — verified system state, six steps in dependency order, and the consolidated build sequence. Companion to the concepts-reference document.
 
 ---
+
 ## Verified current state (bot-confirmed against live system)
 
 - Config valid; Gateway active; heartbeat live at `1h`.
@@ -16,6 +17,7 @@
 - `MEMORY.md` and `memory/2026-06-21.md` **not cleanly reconciled** (daily file has duplicated/stale early entries + later corrections).
 
 ### Load-bearing secrets (verified by name)
+
 - **Control-channel / lockout-sensitive:** `TELEGRAM_BOT_TOKEN`, `OPENCLAW_GATEWAY_TOKEN`, `gateway.auth.token`.
 - **Important, less lockout-sensitive:** `GOOGLE_WEBSEARCH_API_KEY`, `OPENAI_WHISPER_API_KEY`, Anthropic default token (agent auth SQLite).
 - `secrets audit` flags plaintext: `gateway.auth.token`, Google web-search key, Anthropic default token.

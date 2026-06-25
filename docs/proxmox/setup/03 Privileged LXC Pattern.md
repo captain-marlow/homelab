@@ -1,12 +1,12 @@
+# Privileged LXC Pattern
+
 This document explains how Linux Containers (LXCs) are used in this homelab, what the difference is between privileged and unprivileged containers, and why this setup deliberately chooses privileged LXCs.
 
-LXCs differ from VMs in that they share the Kernel with the host. This lowers 
+LXCs differ from VMs in that they share the Kernel with the host. This lowers
 
-The short version is that privileged containers keep UID/GID values the same inside the LXC and on the host. That means `ryan:ryan` as `1000:1000` behaves the same across ZFS, the LXC, and the Docker containers running inside it. 
-
+The short version is that privileged containers keep UID/GID values the same inside the LXC and on the host. That means `ryan:ryan` as `1000:1000` behaves the same across ZFS, the LXC, and the Docker containers running inside it.
 
 `pveam download local debian-13-standard_13.1-2_amd64.tar.zst`
-
 
 ## 2. Standard LXC Settings
 
@@ -38,13 +38,13 @@ This is the main reason the storage work came first. Once the host-side paths ar
 Two Docker-capable LXCs exist so far:
 
 - **CT100 – `infrastructure`**
-    - Komodo Periphery agent
-    - Nginx Proxy Manager
-    - Supporting infrastructure services
+  - Komodo Periphery agent
+  - Nginx Proxy Manager
+  - Supporting infrastructure services
 - **CT150 – `servarr`**
-    - qbittorrent
-    - radarr / sonarr / lidarr / prowlarr
-    - Media-related workflows
+  - qbittorrent
+  - radarr / sonarr / lidarr / prowlarr
+  - Media-related workflows
 
 Each LXC:
 
@@ -52,6 +52,7 @@ Each LXC:
 - Uses systemd normally
 - Mounts a single `/config` directory backed by ZFS
 - Receives additional bind mounts (e.g. `/data`) as needed
+
 ## II. Create the Container (CLI)
 
 All LXC creation is done via the command line on the Proxmox host using `pct create`. This approach is more explicit and reproducible than the GUI, and it's what Ansible will automate later in [Step 04](./04-ansible-orchestration.md).
@@ -59,6 +60,7 @@ All LXC creation is done via the command line on the Proxmox host using `pct cre
 > **Note**: These steps can also be done through the Proxmox web GUI if you prefer — the creation wizard walks through the same parameters. However, the CLI is the canonical method documented here because it's scriptable and leaves no ambiguity about what was set.
 
 ### Infrastructure LXC (CT100)
+
 ```bash
 pct create 100 local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst \
   --hostname infrastructure \
@@ -74,6 +76,7 @@ pct create 100 local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst \
 ```
 
 ### Servarr LXC (CT150)
+
 ```bash
 pct create 150 local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst \
   --hostname servarr \

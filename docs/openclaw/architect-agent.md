@@ -9,7 +9,7 @@ executes; the human gates.
 - **Agent id:** `architect` (second agent alongside `main`; gateway hosts multiple isolated agents).
 - **Model:** `anthropic/claude-opus-4-8`, on a **dedicated Max setup-token** in the agent's own auth store.
 - **Status:** Built and **proven working** (read-only, repo-grounded, Opus answering). Not yet on
-  Matrix — `@architect` binding is **P004** (the loop).
+  Matrix. The `@architect` binding is **P004** (the loop).
 
 The architect is co-resident with `main` on the same gateway, not a separate machine. The
 "independent of the system it fixes" principle governs the *Proxmox maintenance agent* (which
@@ -21,7 +21,7 @@ tool policy) is the right boundary.
 ## Agent definition (`openclaw.json` → `agents.list[]`)
 
 Created with `openclaw agents add architect --agent-dir … --workspace … --model anthropic/claude-opus-4-8`
-(no scope upgrade required — unlike `channels add`), then the read-only policy was edited in directly:
+(no scope upgrade required, unlike `channels add`), then the read-only policy was edited in directly:
 
 ```json
 {
@@ -44,13 +44,14 @@ Created with `openclaw agents add architect --agent-dir … --workspace … --mo
 
 **Effective tool set, confirmed live: `read`, `message`, `web_fetch`, `session_status`. No exec,
 no write.** `web_fetch` was added in **P009 (2026-06-25)** to give the planner **read-only web
-access** (read docs/repos/forums while planning). It's a **keyless, in-process HTTP GET** — *not*
-the chromium browser, no subprocess — so it's a *read*, not a mutation, and the read-only/deny-exec
+access** (read docs/repos/forums while planning). It's a **keyless, in-process HTTP GET** (*not*
+the chromium browser, no subprocess), so it's a *read*, not a mutation, and the read-only/deny-exec
 posture is fully intact. It is **not** part of `group:runtime` (= `exec`/`process`/`code_execution`),
 so the existing `deny` left it allowable; **verified live** (architect fetched `example.com`, 200).
 Fetched content is treated as **untrusted** (prompt-injection surface) per the SOUL.
 
 ### Why this policy (least-privilege + defense-in-depth)
+
 - `profile: minimal` grants only `session_status`; `alsoAllow: [read, message]` opens a *closed*
   allowlist of exactly read + Matrix-send. Nothing else is even offered.
 - `deny: [group:runtime, write, edit, apply_patch]` is explicit belt-and-suspenders so the posture
@@ -89,6 +90,7 @@ The architect reads the homelab repo as its knowledge base.
 - **Read-only GitHub deploy key** (ed25519, `~/.ssh/architect_homelab_deploy`) under the `openclaw`
   user, registered on the repo's Deploy keys with **write access off**. Per-repo, independently
   revocable — cleaner than a PAT. Reached via an SSH host alias so it doesn't collide with other keys:
+
   ```
   Host github-homelab
     HostName github.com
@@ -96,6 +98,7 @@ The architect reads the homelab repo as its knowledge base.
     IdentityFile ~/.ssh/architect_homelab_deploy
     IdentitiesOnly yes
   ```
+
 - **Clone:** `git clone git@github-homelab:captain-marlow/homelab.git
   ~/.openclaw/agents/architect/workspace/homelab`.
 - **Refresh:** manual `git -C …/workspace/homelab pull` ("manual before automatic"; tighten to
@@ -130,6 +133,7 @@ read-order into the repo (STATE → projects → ideas → docs/), and Master's 
 ## Verification (what was proven)
 
 A live run (`openclaw agent --agent architect --model anthropic/claude-opus-4-8 --message …`):
+
 - Identifies as **Architect 📐, the read-only planner** (identity files injected, confirmed in
   `injectedWorkspaceFiles`).
 - `tools: [read, message, session_status]`, `skills: []` in the actual system prompt.

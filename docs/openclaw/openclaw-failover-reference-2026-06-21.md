@@ -3,7 +3,7 @@
 **Date:** 2026-06-21
 **Host:** `openclaw` LXC (Proxmox CT, Debian, static `192.168.1.175`)
 **Gateway version:** OpenClaw 2026.6.8 (844f405)
-**Scope of this document:** Full record of the model-failover, image-gen, prompt-caching, and Anthropic/Google auth-hardening work completed in this session — *what* was changed, *where* it lives, and *why* each decision was made, so the reasoning doesn't have to be re-derived later.
+**Scope of this document:** Full record of the model-failover, image-gen, prompt-caching, and Anthropic/Google auth-hardening work completed in this session. This covers *what* was changed, *where* it lives, and *why* each decision was made, so the reasoning doesn't have to be re-derived later.
 
 ---
 
@@ -18,6 +18,7 @@
 ## 2. Final Proven Configuration
 
 ### Text model chain
+
 | Role | Model | Auth method | Durability |
 |------|-------|-------------|------------|
 | Primary | `openai/gpt-5.5` | OpenAI Codex OAuth (`openai:ryan+openai@ryankennedy.me`) | Subscription; 5h rolling usage cap is what triggers failover |
@@ -25,12 +26,14 @@
 | Fallback 2 | `google/gemini-3-flash-preview` | Google API key, file-backed SecretRef (`google:manual`) | Free-tier, durable key |
 
 ### Image chain
+
 | Role | Model | Notes |
 |------|-------|-------|
 | Primary | `openai/gpt-image-2` | OpenAI; rides Codex OAuth |
 | Fallback | *(none)* | Intentionally empty — see §5 |
 
 ### Config keys of record
+
 - `agents.defaults.model.primary` = `openai/gpt-5.5`
 - `agents.defaults.model.fallbacks` = `[anthropic/claude-sonnet-4-6, google/gemini-3-flash-preview]`
 - `agents.defaults.imageModel.primary` = `openai/gpt-image-2`
@@ -53,6 +56,7 @@
 ## 4. Google / Gemini setup (the longest thread)
 
 ### Key facts established
+
 - **A Gemini *subscription* and a Gemini *API key* are different products.** The subscription (Gemini app) does **not** grant API access. API keys come from **Google AI Studio** (`aistudio.google.com`), free tier, no credit card required.
 - **Google removed all *Pro* models from the free tier on 2026-04-01.** `gemini-3.1-pro-preview` returns `limit: 0` on a free-tier key — structurally paid-only, not a transient rate limit. Pricing page lists it as "Free Tier: Not available."
 - **Free tier covers only Flash / Flash-Lite.** `gemini-3-flash-preview` has real free quota (~1,500 RPD, 10 RPM, 1M context, supports function calling) — which is why it's the chosen fallback.
@@ -62,6 +66,7 @@
   - Gemini *model* key — now stored as a file-backed SecretRef (below).
 
 ### What was built
+
 1. **Provider catalog registration** — `models.providers.google` added to `openclaw.json`:
    - `api: google-generative-ai`
    - `baseUrl: https://generativelanguage.googleapis.com/v1beta`
@@ -75,6 +80,7 @@
 3. **Removed the plaintext `GEMINI_API_KEY` from the env file** after the SecretRef was proven, so the SecretRef is the single source (confirmed: `models status` no longer shows an `env=` line for Google).
 
 ### `cacheRetention: "long"` and Gemini
+
 Setting `cacheRetention: "long"` enables OpenClaw's managed `cachedContents` for direct Gemini runs (1h TTL). Measured at ~88% cache reads on repeat Flash turns after the change.
 
 ---
@@ -89,7 +95,7 @@ generate_content_free_tier_requests, limit: 0, model: gemini-3.1-flash-image
 generate_content_free_tier_input_token_count, limit: 0
 ```
 
-Same structural free-tier wall as Gemini Pro text — **zero quota, billing-gated**, not transient. Decision: **drop it rather than keep a configured-but-dead fallback**, because a fallback that can never complete creates false confidence (you'd believe you had image redundancy when you didn't). Image-gen is rare and the OpenAI primary works, so `gpt-image-2` with *no* fallback is the honest state. Revisit only if image redundancy is genuinely needed (would require enabling Google billing).
+Same structural free-tier wall as Gemini Pro text. **Zero quota, billing-gated**, not transient. Decision: **drop it rather than keep a configured-but-dead fallback**, because a fallback that can never complete creates false confidence (you'd believe you had image redundancy when you didn't). Image-gen is rare and the OpenAI primary works, so `gpt-image-2` with *no* fallback is the honest state. Revisit only if image redundancy is genuinely needed (would require enabling Google billing).
 
 ---
 
@@ -105,6 +111,7 @@ All models failed (3):
 ```
 
 **What it proved:**
+
 - The failover logic **worked correctly** — it tried all three legs in order and reported precisely why each failed (no pinning, no hang).
 - The error was an *honest* result of all three being genuinely down, not a failover bug.
 - **The root cause was the middle leg already being dead** (Sonnet's OAuth expired). Had Sonnet been healthy, Codex's cooldown would have rolled to it silently with no user-visible error.
@@ -116,25 +123,31 @@ This exposed the one real weakness (Claude OAuth fragility, §7) and led directl
 ## 7. Anthropic auth hardening (the durability fix)
 
 ### The problem
+
 The Claude leg was running on **Claude CLI OAuth** (`anthropic:claude-cli`). Findings:
+
 - **OpenClaw does not auto-refresh the Claude CLI OAuth token.** It reads the `claude` binary's stored session at use-time; if `claude` hasn't independently refreshed, OpenClaw's view goes stale/expired. There is **no OpenClaw-owned refresh loop** for this path.
 - This makes it **structurally fragile for a long-lived gateway** — it expires on any session that outlives the access token (~8h) unless `claude` is independently invoked.
 - A `claude -p "ping"` test earlier showed it *working at that moment* — but that proved the token was *valid then*, not that it *refreshes on expiry*. It later expired during the session.
 
 ### The fix
+
 1. **Created an Anthropic setup-token** via `openclaw models auth login --provider anthropic → Anthropic setup-token`.
    - Stored as profile `anthropic:default [anthropic/token]` (`sk-ant-o…`), **static — no short expiry**.
    - Note: OpenClaw confirms this path is sanctioned ("Anthropic staff told us this OpenClaw path is allowed again").
    - **Headless auth note:** the `claude setup-token` flow is *paste-back*, not local-redirect — open the URL, authorize, copy the auth code back into **Claude Code** (not OpenClaw's prompt), which then emits the `sk-ant-oat01-…` token. No SSH port-forward/tunnel needed. The code is single-use and time-limited (short window — re-run if it times out).
 2. **Set auth-order override so the durable token leads:**
+
    ```
    openclaw models auth order set --provider anthropic anthropic:default
    ```
+
    - Proven via `--probe`: `anthropic:default (token) = ok`; `anthropic:claude-cli (oauth) = Excluded by auth.order`.
    - The OAuth profile **remains present as a deprioritized secondary** (recoverable, and pin-able per-session via `/model claude-sonnet-4-6@anthropic:claude-cli`).
 
 ### Why durable-token-first, not OAuth-first
-The intuition "it's just a fallback, OAuth is fine" is **backwards**. The OAuth failure mode is *expiry from disuse*, and a fallback leg is *idle by definition* — it only fires when the primary is down, possibly days apart. So the leg touched least is exactly where a decay-from-disuse credential is most dangerous. The static token doesn't decay, so it belongs on the intermittent leg. Also: OpenClaw did **not** demonstrably fall through from a failed Anthropic profile to a second one (the triple-failure showed a hard auth error, not a profile rotation) — so whatever profile is *first* must work, which is the durable token.
+
+The intuition "it's just a fallback, OAuth is fine" is **backwards**. The OAuth failure mode is *expiry from disuse*, and a fallback leg is *idle by definition* (it only fires when the primary is down, possibly days apart). So the leg touched least is exactly where a decay-from-disuse credential is most dangerous. The static token doesn't decay, so it belongs on the intermittent leg. Also: OpenClaw did **not** demonstrably fall through from a failed Anthropic profile to a second one (the triple-failure showed a hard auth error, not a profile rotation), so whatever profile is *first* must work, which is the durable token.
 
 ---
 
@@ -166,6 +179,7 @@ The intuition "it's just a fallback, OAuth is fine" is **backwards**. The OAuth 
 ---
 
 ## 11. Backups created today
+
 ```
 ~/.openclaw/openclaw.json.bak.1 … .bak.4 (+ bare .bak)
 ~/.openclaw/openclaw.env.bak.20260621_042013
@@ -174,6 +188,7 @@ The intuition "it's just a fallback, OAuth is fine" is **backwards**. The OAuth 
 ```
 
 ## 12. Files written / changed today
+
 ```
 ~/.openclaw/openclaw.json
 ~/.openclaw/.env                         (renamed from openclaw.env)
@@ -189,11 +204,13 @@ The intuition "it's just a fallback, OAuth is fine" is **backwards**. The OAuth 
 ## 13. Known issues / open items
 
 ### Surfaced this session (worth noting)
+
 - **Embedding/semantic-memory quota exhausted** — semantic memory search was unavailable due to embedding quota exhaustion. Likely the Gemini/Google free-tier quota for embeddings. Worth investigating which key/project backs embeddings and whether it needs isolation.
 - **Two memory artifacts exist** — `MEMORY.md` (snapshot) and `memory/2026-06-21.md` (dated log). Reconcile so the canonical state lives wherever OpenClaw actually reads at boot.
 - **`secrets audit` is not clean** — still flags plaintext `gateway.auth.token`, the Google web-search key, the `anthropic:default.token`, and OAuth residues for OpenAI / Claude CLI.
 
 ### Deferred backlog (next sessions)
+
 1. **Local Ollama tier** — a 4th, *unkillable* fallback under Gemini (can't expire/revoke/rate-limit/503). The structural answer to the §6 triple-failure. *(64GB host can run a strong quantized model.)*
 2. **Full SecretRef migration** — migrate remaining plaintext secrets (Telegram token, gateway token, Whisper key, web-search key) to file-backed SecretRefs → `openclaw secrets audit --check clean`. Careful: some are load-bearing for the control channel. The Gemini key is the template/first instance.
 3. **Task 3 Part B — history/context pruning** (`contextPruning.mode: "cache-ttl"` + reviewed trim threshold). Where the real token savings are, since OpenAI is already cache-maxed.

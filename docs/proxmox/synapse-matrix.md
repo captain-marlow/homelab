@@ -4,7 +4,7 @@ The self-hosted Matrix homeserver that backs the OpenClaw two-agent loop (archit
 This page is the operational record for the build: what runs where, how it was wired, the
 non-obvious traps, and the routine operations (redeploy, snapshot/restore).
 
-- **server_name:** `matrix.ryankennedy.dev` (permanent — baked into the signing key and every
+- **server_name:** `matrix.ryankennedy.dev` (permanent; baked into the signing key and every
   user/room ID, cannot be changed later without rebuilding the server)
 - **Federation:** OFF. **Open registration:** OFF.
 - **Access:** PUBLIC. Ports 80/443 are NAT-forwarded WAN → NPM. Reachable on-net, over
@@ -108,6 +108,7 @@ desktop + phone, on-net and over WireGuard.
 ## Gotchas (the non-obvious stuff)
 
 ### Nested ZFS dataset + non-recursive LXC bind = shadowed child datasets
+
 The baseline role creates `flash/docker/<stack>` **and** a child dataset per app
 (`flash/docker/<stack>/<app>`). But the LXC bind mount maps only the **parent**
 (`flash/docker/synapse → /config`) and it is **non-recursive**. So when Docker writes to
@@ -116,6 +117,7 @@ dataset*, not in the child datasets. The child datasets (`flash/docker/synapse/p
 `flash/docker/synapse/synapse`) sit empty and unused.
 
 Consequences:
+
 - **Edit Synapse config from INSIDE the CT** (`/config/...`), never via the host path
   `/mnt/flash/docker/synapse/synapse/...` — that path is the shadowed, unused child dataset.
   (This is why `configure_synapse.py` runs in the container, not on the host.)
@@ -126,6 +128,7 @@ Consequences:
 - *Baseline-role follow-up:* either rbind (recursive) the mount or stop creating child datasets.
 
 ### `pct snapshot` is unavailable on bind-mount CTs → use ZFS snapshots
+
 `pct snapshot` refuses ("snapshot feature is not available") because the `/config` bind mount is
 not a Proxmox-managed volume. Snapshot at the ZFS layer instead. True for **every** bind-mount CT.
 
@@ -137,46 +140,53 @@ zfs snapshot -r flash/docker/synapse@p001-deployed-2026-06-22
 ```
 
 ### Synapse image — use the Element HQ image, not matrixdotorg
+
 Synapse maintenance moved from the Matrix.org Foundation to Element, and the canonical image
 moved with it: **`ghcr.io/element-hq/synapse`** (the old `matrixdotorg/synapse` is deprecated).
-The two are config-compatible, so switching is just a re-pull + recreate — no regenerate, no DB
+The two are config-compatible, so switching is just a re-pull + recreate: no regenerate, no DB
 change. This stack runs the Element HQ image.
 
 ### iOS "Local Network" permission prompt
+
 On the home network, the pfSense host override resolves `matrix.ryankennedy.dev` to the **LAN IP**
 `192.168.1.110` (split-horizon, to avoid hairpinning). iOS 14+ requires apps to be granted the
 **Local Network** privacy permission before they can reach LAN addresses, so Element prompts for it
 on first on-net connect. Allow it. On cellular the name resolves to the public IP, so no prompt
-there — this is expected, not a misconfiguration.
+there. This is expected, not a misconfiguration.
 
 ### Postgres locale
+
 Synapse requires `C` collation/ctype. The compose sets
 `POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"`. This only applies on first
-init of an empty data dir — getting it wrong means re-initializing the database.
+init of an empty data dir. Getting it wrong means re-initializing the database.
 
 ---
 
 ## Routine operations
 
 **Redeploy the compose (after editing the compose file in the repo):**
+
 ```bash
 cd config/proxmox/ansible
 ansible-playbook playbooks/deploy_synapse_stack.yml   # idempotent; requires /config/.env to exist
 ```
 
 **Confirm Postgres is the backing store (not sqlite):**
+
 ```bash
 pct exec 171 -- docker exec synapse-db psql -U synapse -d synapse -c '\dt' | head
 # real tables owned by 'synapse' = good
 ```
 
 **Register another user:**
+
 ```bash
 pct exec 171 -- docker exec synapse \
   register_new_matrix_user -c /data/homeserver.yaml --no-admin http://localhost:8008
 ```
 
 **Restore app data from snapshot** (stop the stack first):
+
 ```bash
 pct exec 171 -- docker compose -f /config/docker-compose.yml down
 zfs rollback flash/docker/synapse@p001-deployed-2026-06-22
