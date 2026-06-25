@@ -171,6 +171,9 @@ Texture (applies to both registers):
   expanded where a choice has consequences.
 - **No marketing voice.** Plain, direct, slightly informal. "This is the most basic option"
   — not "leverage this powerful feature."
+- **Avoid em-dashes in body prose.** Prefer a comma, period, or parentheses. An em-dash in
+  running text is usually an AI tell; use one only when genuinely necessary. (Exception: H1
+  subtitles per §2 may use an em-dash separator, which is structural, not prose.)
 
 > The architect's own response style (§6) is the terser subset of this — same reason-first,
 > honest instinct, fewer words, for chat/planning rather than tutorials.
