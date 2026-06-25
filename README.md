@@ -1,7 +1,9 @@
 # Homelab Repo
+
 Self-hosted homelab: Proxmox, pfSense, OpenClaw, Hermes, and the AI agents that operate them.
 
 ## How this repo is organized
+
 Four layers, **category-first**. Planning lives at the root; everything else is one of three top-level categories, each namespaced by subject *inside* it.
 
 ```
@@ -17,7 +19,7 @@ homelab/
     ├── architect/  main/  proxmox-maintenance/  ...
 ```
 
-The rule in one sentence: **planning at root; then `config/` (the thing), `docs/` (about the thing), `agents/` (acts on the thing) — subject is the namespace inside each category, not a top-level dir.**
+The rule in one sentence: **planning at root; then `config/` (the thing), `docs/` (about the thing), `agents/` (acts on the thing). Subject is the namespace inside each category, not a top-level dir.**
 
 Why category-first and not subject-first (`proxmox/{config,docs,agent}`): agents must stay an independent layer. The Proxmox maintenance agent must not live with Proxmox (the fixer stays independent of what it fixes), and the architect agent plans the whole homelab, not one subject. A top-level `agents/` enforces that structurally; nesting agents per subject would fight it.
 
@@ -42,7 +44,7 @@ These two rot differently. Keep the distinction sharp: a state change updates kn
 
 Agents *act on* subjects; they aren't *part* of them. Some subjects have several agents (OpenClaw: `architect` + `main`), some have one, some none. A dedicated dir handles the uneven count and keeps a clean list.
 
-This also reinforces a hard principle: **the thing that fixes a system stays independent of the system it fixes.** The Proxmox maintenance agent lives in `agents/`, not `config/proxmox/`, and SSHes in — never a circular dependency.
+This also reinforces a hard principle: **the thing that fixes a system stays independent of the system it fixes.** The Proxmox maintenance agent lives in `agents/`, not `config/proxmox/`, and SSHes in (no circular dependency).
 
 ## The working loop
 
