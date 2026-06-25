@@ -17,7 +17,7 @@ Migrated to the **category-first** layout (`config/` · `docs/` · `agents/`, su
 **Status: daily driver, hardened, documented. Step 1 of the build plan complete.**
 
 - Gateway running on the `openclaw` LXC (Proxmox CT, Debian, static `192.168.1.175`), OpenClaw 2026.6.8.
-- Three-deep cross-provider text failover proven live: `openai/gpt-5.5` (Codex OAuth) → `anthropic/claude-sonnet-4-6` (durable setup-token) → `google/gemini-3-flash-preview` (file-backed key). Auto-switches on rate limit, announces once per state change.
+- **Two-deep** cross-provider text failover: `openai/gpt-5.5` (Codex OAuth) → `anthropic/claude-sonnet-4-6` (durable setup-token). Auto-switches on rate limit, announces once per state change. **(Gemini removed 2026-06-25)** — the `google/gemini-3-flash-preview` 3rd leg was dropped: its metered API key sits on a **0-token free tier** (useless), and the only subscription path (OpenClaw's `google-gemini-cli` OAuth) carries a Google-warned **account-suspension risk**, declined for a personal account. Web search (which was also Gemini-backed) is **disabled** as a result.
 - Anthropic durable token leads its leg; `claude-cli` OAuth demoted to manual-pin fallback.
 - `MEMORY.md` is the canonical boot file (durable policy); `OPEN-ISSUES.md` holds transient state.
 - Filesystem hardened (`~/.openclaw` → 700); SecretRef migration done (1 accepted plaintext exception: the static Anthropic token, which OpenClaw's SecretRef subsystem structurally can't hold).
@@ -28,6 +28,7 @@ Migrated to the **category-first** layout (`config/` · `docs/` · `agents/`, su
 - Semantic memory **RESTORED (2026-06-24, P005)** — now served by local Ollama embeddings (`nomic-embed-text` on CT172), replacing the dead OpenAI path. `main`'s index = 7 files / 53 chunks; `openclaw memory search` returns real ranked results. Embed latency ~0.3s after the CT172 core bump (4→16). See the Ollama tier section below + `docs/ollama/ollama-tier.md`. (The silent-failure caveat still holds in general: `openclaw memory search` can exit 0 with empty output after an embedding failure — empty ≠ absence.)
 - Gateway-token rotation deferred (loopback-only, low exposure) but is the matched closing step to the same-value relocation.
 - Anthropic usage stats absent from dashboard post-June-15 — leading theory is a billing change; treated as cosmetic.
+- **Web search is off** (was Gemini-backed; both OpenClaw "google" web-search paths hit the Generative Language API). To restore real search, add a **non-Gemini provider** (Tavily / Brave / Exa — actual free tiers) — folded into the architect read-only-web-ingest idea (see `ideas.md`). The dormant `google_websearch_key_file` SecretRef + `plugins.entries.google` were left in place (harmless) for a possible future repoint.
 
 ---
 
