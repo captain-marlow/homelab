@@ -59,6 +59,33 @@ OpenClaw's `agents.defaults.memorySearch` was repointed `provider: openai → ol
 
 ---
 
+## Hermes (Mac-side read-write / git-push executor) — P006 in progress
+
+**Status: steps a + b DONE (2026-06-24); step c (Matrix loop) not started, with a macOS blocker.**
+Hermes (Nous Research agent) on the Mac is the institutional version of the read-write/git-push
+executor role Claude Code plays manually now — a hard dependency for **P008**.
+
+- **Standalone (a):** Hermes v0.17.0 on this Intel Mac (CLI; desktop app is ARM-only). Runs
+  `anthropic/claude-sonnet-4-6` on its **own native PKCE OAuth** (Max plan). Migrate-from-OpenClaw
+  skipped — the Mac's `~/.openclaw` was a stale March shell (now **deleted**; its plaintext keys
+  flagged for rotation). **Gotcha (resolved):** Hermes auto-pools the machine's *Claude Code*
+  credentials, and using them **logged the live VS Code session out** repeatedly — fixed by
+  isolating the cred pool to the `hermes_pkce` entry. **Never run bare `hermes auth add anthropic`**
+  (it re-pools them).
+- **Repo integration (b):** own clone `~/Developer/homelab-hermes`, dedicated read-write **deploy
+  key** (`github-hermes` alias, write access on the repo), commit identity
+  `Hermes <hermes@ryankennedy.dev>`. **Proven:** Hermes added an idea to `ideas.md` and pushed to
+  `origin/main` (commit `4f5c082`), independently verified; all three clones refreshed. **Three
+  clones now exist** (Claude's working clone, Hermes's read-write clone, the architect's read-only
+  clone on CT175) — refresh the others after any push.
+- **Loop (c) — not started:** Hermes *has* native Matrix support, but it needs `python-olm`, which
+  **has no build path on modern macOS**, and the Drafting Table room is **E2EE** — so Mac-side
+  Hermes may not be able to join the encrypted room. P006c must resolve this (test the install; else
+  an **OC↔Hermes MCP/OpenAI bridge** instead of direct Matrix) and define the two-executor division
+  of labor. Full record: `docs/hermes/hermes-mac.md`.
+
+---
+
 ## Proxmox / pfSense
 
 Established infrastructure. Proxmox docs partly compiled (knowledge-base + setup); old notes still being consolidated. pfSense runs WireGuard (always-on phone client, LAN-IP access off-network) — this already covers remote access, so Tailscale is optional/later.
@@ -67,4 +94,4 @@ Established infrastructure. Proxmox docs partly compiled (knowledge-base + setup
 
 ## On the horizon (not yet active)
 
-Hermes on Mac (standalone → homelab-repo integration → OC bridge) → Proxmox maintenance agent (lives on Mac/Hermes, SSHes in — independent of the system it fixes) → local Whisper (deployed last via the Proxmox agent). *(Ollama LXC done — P005.)* A small local chat model on the Ollama tier (heartbeat/classification offload) and the "architect on a local model" decision can now be taken empirically.
+Hermes on Mac — **standalone + repo integration done (P006a/b, 2026-06-24)**; the Matrix-loop step (P006c) is next but has a macOS `python-olm` blocker (see the Hermes section). Then → Proxmox maintenance agent (lives on Mac/Hermes, SSHes in — independent of the system it fixes) → local Whisper (deployed last via the Proxmox agent). *(Ollama LXC done — P005.)* A small local chat model on the Ollama tier (heartbeat/classification offload) and the "architect on a local model" decision can now be taken empirically.

@@ -14,7 +14,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
-| P006 | Hermes on Mac (standalone → repo integration → OC bridge) — the central read-write executor + git-push node (institutionalizes the Mac-side role Claude Code plays now) | hermes | queued | — | docs/hermes |
+| P006 | Hermes on Mac (standalone → repo integration → OC bridge) — the central read-write executor + git-push node (institutionalizes the Mac-side role Claude Code plays now). **a (standalone) + b (repo integration) DONE 2026-06-24; c (Matrix loop) next — macOS `python-olm` blocker, may need an OC↔Hermes MCP bridge instead** | hermes | active | — | docs/hermes/hermes-mac.md |
 | P007 | Documentation style guide (`STYLE.md`) + Vale/markdownlint (terminology, headers, formatting, verbosity norms; derived from existing house style). Also covers the architect's response-style spec (shorter, fewer caveats) as a subset. | docs | queued | — (pairs with P008) | docs/meta |
 | P008 | Documentation sort pass — bring all docs to `STYLE.md` via the loop (architect audits/proposes → you gate → Hermes applies + pushes; Vale as the mechanical floor) | docs | queued | P004, P006, P007 | docs/meta |
 
