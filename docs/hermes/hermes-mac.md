@@ -205,8 +205,12 @@ executor (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push) ap
 - **Division of labor + architect handoff habit** — see "Loop handoff" above: decide which executor
   (`@openclaw` vs `@hermes`) applies what, and get the architect emitting full-MXID pills. Plan with
   the architect. (`MATRIX_ALLOWED_USERS` already includes both bots.)
-- **Gateway is a manual `nohup` process** (survives this session, not a reboot). For a durable
-  executor, install as a launchd service: `hermes gateway install`.
+- ~~Gateway is a manual `nohup` process~~ **DONE** — installed as a **launchd LaunchAgent**
+  (`~/Library/LaunchAgents/ai.hermes.gateway.plist`, `RunAtLoad` + `KeepAlive`): starts at login,
+  auto-restarts on crash. Logs at `~/.hermes/logs/gateway.log`. Verified the launchd-started gateway
+  **verifies cross-signing via the recovery key** (no re-bootstrap) — the `MATRIX_RECOVERY_KEY` pin
+  is doing its job. (LaunchAgent = starts at *login*, not boot-before-login; `--system` is Linux-only
+  and would run as root, breaking the user-context PKCE auth, so we use the user LaunchAgent.)
 - **Title-generator 401** — `Title generation failed: 401 Missing Authentication header` in the log;
   cosmetic (session auto-naming), non-blocking.
 - **Memory:** optionally point Hermes at the **CT172 Ollama** tier (`192.168.1.172:11434`,
@@ -223,9 +227,11 @@ executor (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push) ap
   a scoped task; run from inside the clone, or rely on `terminal.cwd`).
 - **Health:** `hermes doctor`, `hermes status`, `hermes auth list` (confirm pool = `hermes_pkce`
   only), `hermes config show`.
-- **Matrix gateway:** `hermes gateway` starts it; `hermes gateway restart` reloads after `.env`
-  edits (it holds a PID lock — `pkill` won't take); `hermes gateway status`. All Matrix config is in
-  `~/.hermes/.env` (`MATRIX_*`).
+- **Matrix gateway (launchd-managed):** runs as the `ai.hermes.gateway` LaunchAgent. `hermes gateway
+  status`; `hermes gateway restart` reloads after `.env` edits (it holds a PID lock — `pkill` won't
+  take); `launchctl list | grep hermes` to confirm the job; logs at `~/.hermes/logs/gateway.log`.
+  `hermes gateway uninstall` removes the LaunchAgent. All Matrix config is in `~/.hermes/.env`
+  (`MATRIX_*`).
 - **Post-upgrade acceptance test (do this after EVERY Hermes upgrade).** The pill-only gate depends
   on a vendor patch + an EOL libolm, and both fail **silently** — bare-name matching quietly returns,
   or the channel lazy-reinstalls unpatched. So after `hermes` updates, before trusting the loop:

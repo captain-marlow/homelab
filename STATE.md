@@ -90,8 +90,9 @@ read-write/git-push executor role Claude Code plays manually now — a hard depe
   the mention gate), and a **tracked vendor patch** to `adapter.py` `_is_bot_mentioned` removing
   bare-name matching (pill-only, re-apply after upgrades). `MATRIX_ALLOWED_USERS` already includes
   both bots (the enabler for pill handoff — verified `@openclaw`→`@hermes`). Open/non-blocking:
-  division of labor (`@openclaw` cluster-side vs `@hermes` Mac-side, plan with the architect);
-  gateway is a manual `nohup` (durable = `hermes gateway install`). Full record:
+  division of labor (`@openclaw` cluster-side vs `@hermes` Mac-side, plan with the architect). The
+  gateway is now **durable** — a launchd LaunchAgent (`ai.hermes.gateway`, `RunAtLoad`+`KeepAlive`),
+  survives reboot/crash; restart verifies E2EE via the pinned recovery key. Full record:
   `docs/hermes/hermes-mac.md`.
 
 ---
