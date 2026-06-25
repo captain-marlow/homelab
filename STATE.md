@@ -88,9 +88,10 @@ read-write/git-push executor role Claude Code plays manually now — a hard depe
   auth pool stayed `hermes_pkce`-only. Two Hermes-specific **gating traps** fixed to match the other
   bots: `MATRIX_AUTO_THREAD=false` + `MATRIX_THREAD_REQUIRE_MENTION=true` (auto-thread was bypassing
   the mention gate), and a **tracked vendor patch** to `adapter.py` `_is_bot_mentioned` removing
-  bare-name matching (pill-only, re-apply after upgrades). Open/non-blocking: division of labor
-  (`@openclaw` vs `@hermes`, plan with the architect) + widening `MATRIX_ALLOWED_USERS` to wire the
-  autonomous loop; gateway is a manual `nohup` (durable = `hermes gateway install`). Full record:
+  bare-name matching (pill-only, re-apply after upgrades). `MATRIX_ALLOWED_USERS` already includes
+  both bots (the enabler for pill handoff — verified `@openclaw`→`@hermes`). Open/non-blocking:
+  division of labor (`@openclaw` cluster-side vs `@hermes` Mac-side, plan with the architect);
+  gateway is a manual `nohup` (durable = `hermes gateway install`). Full record:
   `docs/hermes/hermes-mac.md`.
 
 ---

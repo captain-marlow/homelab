@@ -225,9 +225,15 @@ executor (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push) ap
   only), `hermes config show`.
 - **Matrix gateway:** `hermes gateway` starts it; `hermes gateway restart` reloads after `.env`
   edits (it holds a PID lock — `pkill` won't take); `hermes gateway status`. All Matrix config is in
-  `~/.hermes/.env` (`MATRIX_*`). After a Hermes upgrade, re-apply the `_is_bot_mentioned` patch and
-  re-confirm `brew list libolm` + the matrix deps in `venv` (else the channel silently lazy-installs
-  and the bare-name match returns).
+  `~/.hermes/.env` (`MATRIX_*`).
+- **Post-upgrade acceptance test (do this after EVERY Hermes upgrade).** The pill-only gate depends
+  on a vendor patch + an EOL libolm, and both fail **silently** — bare-name matching quietly returns,
+  or the channel lazy-reinstalls unpatched. So after `hermes` updates, before trusting the loop:
+  1. Re-apply the `_is_bot_mentioned` patch (`HOMELAB PATCH (P006c)`; backup `adapter.py.bak-p006c-*`)
+     and confirm `brew list libolm` + `import mautrix, olm` in `venv` still resolve.
+  2. Restart and run the four-point check in Drafting Table: **(a)** E2EE decrypts (Hermes reads a
+     fresh encrypted message); **(b)** bare "hermes" → **silence**; **(c)** a full-MXID `@hermes`
+     pill → **reply**; **(d)** bot-to-bot handoff — `@openclaw` full-MXID pill → Hermes responds.
 - **Push as Hermes:** the clone's remote is `git@github-hermes:…`; the deploy key authenticates.
   After a Hermes push, refresh Claude's clone (`git -C ~/Developer/homelab pull --ff-only`) and the
   architect's (`ssh openclaw '… git pull --ff-only'`).
