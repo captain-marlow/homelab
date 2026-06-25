@@ -2,7 +2,7 @@
 
 *The narrative snapshot of where everything stands right now, a complete overview of the entire homelab cluster. Read this first. For the ordered task list see `projects.md`; for the idea pool see `ideas.md`; for per-subject detail see `docs/<subject>/`.*
 
-**Last updated:** 2026-06-24
+**Last updated:** 2026-06-25
 
 ---
 
@@ -108,9 +108,17 @@ Established infrastructure. Proxmox docs partly compiled (knowledge-base + setup
 
 Hermes on Mac — **fully done (P006a/b/c, 2026-06-24/25)**: standalone + repo integration + the
 Matrix loop (`@hermes` live in Drafting Table over E2EE; the `python-olm` blocker was
-Apple-Silicon-specific and didn't apply to this Intel Mac). Next docs track is **P007 → P008** (style
-guide + sort pass, the latter using Hermes as the read-write executor). Other threads → Proxmox
-maintenance agent (lives on Mac/Hermes, SSHes in — independent of the system it fixes) → local
-Whisper (deployed last via the Proxmox agent). *(Ollama LXC done — P005.)* A small local chat model
-on the Ollama tier (heartbeat/classification offload) and the "architect on a local model" decision
-can now be taken empirically.
+Apple-Silicon-specific and didn't apply to this Intel Mac). Other threads: Proxmox maintenance
+agent (lives on Mac/Hermes, SSHes in, independent of the system it fixes) → local Whisper
+(deployed last via the Proxmox agent). *(Ollama LXC done — P005.)* A small local chat model on the
+Ollama tier (heartbeat/classification offload) and the "architect on a local model" decision can
+now be taken empirically.
+
+**Docs track (P007 complete, 2026-06-25):** `STYLE.md` is live in `docs/meta/` — house style
+conventions + the architect's response-style spec + voice section derived from Ryan's hand-written
+Proxmox originals. The mechanical floor is in place: markdownlint (structure) + Vale (prose, at
+`warning` level, non-blocking). Config files in repo root (`.vale.ini`, `.markdownlint.jsonc`);
+styles and accept-list under `styles/Homelab/`. See `docs/meta/linting.md` for how to run.
+**P008 (sort pass) is now unblocked.** Worklist: markdownlint reflow (~390 findings), Vale
+terminology fixes (lowercase `openclaw`/`proxmox`), ~92 body-prose em-dashes to revise, and
+`docs/ollama/` structural drift (missing `knowledge-base/` subfolder).

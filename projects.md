@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line** — reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule — but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-06-24
+**Last updated:** 2026-06-25
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -10,12 +10,11 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** `P007 → P008`
+**Order — edit this line to reorder:** `P008`
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
-| P007 | Documentation style guide (`STYLE.md`) + Vale/markdownlint (terminology, headers, formatting, verbosity norms; derived from existing house style). Also covers the architect's response-style spec (shorter, fewer caveats) as a subset. | docs | queued | — (pairs with P008) | docs/meta |
-| P008 | Documentation sort pass — bring all docs to `STYLE.md` via the loop (architect audits/proposes → you gate → Hermes applies + pushes; Vale as the mechanical floor) | docs | queued | P004, P006, P007 | docs/meta |
+| P008 | Documentation sort pass — bring all docs to `STYLE.md` via the loop (architect audits/proposes → you gate → Hermes applies + pushes; Vale as the mechanical floor). Worklist from P007: (a) markdownlint reflow/hygiene (~390 findings, mostly MD013 line-length and heading/fence blank-line hygiene), (b) Vale terminology fixes (lowercase `openclaw`/`proxmox` in `STATE.md`, `projects.md`, `two-agent-loop.md`), (c) ~92 body-prose em-dashes to revise, (d) `docs/ollama/` missing its `knowledge-base/` subfolder (structural drift, normalize to the README layout). | docs | queued | P004, P006, P007 | docs/meta |
 
 ---
 
@@ -46,6 +45,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | P004 | Two-agent loop (architect ↔ main ↔ you, mention-gated Drafting Table room)                  | openclaw/matrix | done | docs/openclaw/two-agent-loop.md |
 | P005 | Ollama LXC (CPU-only; `nomic-embed-text` → restored OpenClaw semantic memory)                | ollama          | done | docs/ollama/ollama-tier.md |
 | P006 | Hermes on Mac — standalone + repo integration + Matrix loop (`@hermes` live in Drafting Table, E2EE, mention-gated; Mac-side read-write/git-push executor) | hermes | done | docs/hermes/hermes-mac.md |
+| P007 | Documentation style guide (`STYLE.md`) + Vale/markdownlint (terminology, headers, formatting, verbosity norms; derived from existing house style). Also covers the architect's response-style spec (shorter, fewer caveats) as a subset. | docs | done | docs/meta |
 | P009 | Architect read-only web access (`web_fetch`, keyless HTTP GET — verified live) + full-MXID handoff convention in its SOUL | openclaw/matrix | done | docs/openclaw/architect-agent.md |
 
 ---
