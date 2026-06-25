@@ -1,0 +1,17 @@
+extends: substitution
+message: "Use '%s' (house terminology, STYLE.md §1)."
+level: warning
+ignorecase: false
+swap:
+  '\bopenclaw\b': OpenClaw
+  '\bOpenCLaw\b': OpenClaw
+  '\bpfsense\b': pfSense
+  '\bPfsense\b': pfSense
+  '\bproxmox\b': Proxmox
+  '\bProxMox\b': Proxmox
+  '\bwireguard\b': WireGuard
+  '\bWireguard\b': WireGuard
+  '\be2ee\b': E2EE
+  '\bsecretref\b': SecretRef
+  '\bsecret-ref\b': SecretRef
+  '\bmxid\b': MXID
