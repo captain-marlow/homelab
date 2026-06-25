@@ -141,7 +141,7 @@ the triggered bot also *read* the other's message, not just be pinged.)
   the chain. (Demonstrated live: step-3 "no mention" terminated a test loop.)
 - **`botLoopProtection`** — 20 accepted bot-pair msgs / 60 s, then 60 s cooldown (runaway backstop).
 - **`requireMention: true`** — nothing fires without a mention at all.
-- **Agent SOUL discipline** — architect/openclaw can be instructed in their identity not to mention
+- **Agent SOUL discipline** — architect/OpenClaw can be instructed in their identity not to mention
   each other unless told, keeping `@ryan` the initiator. This is the *soft* gate. For a *hard* gate,
   withhold the other bot's full MXID from context or tighten policy.
 
@@ -235,7 +235,7 @@ API with each bot's token (one-time per room). Watch for:
 - **Public-URL password-login 403** — diagnose the NPM/Synapse path (Element works for `@ryan`;
   bot password-login via the public URL doesn't). Low urgency — token auth works.
 - **`/reset` delivers no visible acknowledgment** — the session reset happens but the expected
-  "✅ Session reset" confirmation isn't sent (openclaw-confirmed). Cosmetic/UX bug; reset works.
+  "✅ Session reset" confirmation isn't sent (OpenClaw-confirmed). Cosmetic/UX bug; reset works.
 - **User-verify the bots** in Element (green shield) — carried over from P002.
 - **Back up the E2EE recovery keys** off-box (both accounts) — carried over from P002.
 - **Resolve/reject the pending CLI scope-upgrade request** — carried over from P002.
