@@ -10,12 +10,13 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** `P007 → P008`
+**Order — edit this line to reorder:** `P009 → P007 → P008`
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
 | P007 | Documentation style guide (`STYLE.md`) + Vale/markdownlint (terminology, headers, formatting, verbosity norms; derived from existing house style). Also covers the architect's response-style spec (shorter, fewer caveats) as a subset. | docs | queued | — (pairs with P008) | docs/meta |
 | P008 | Documentation sort pass — bring all docs to `STYLE.md` via the loop (architect audits/proposes → you gate → Hermes applies + pushes; Vale as the mechanical floor) | docs | queued | P004, P006, P007 | docs/meta |
+| P009 | Architect web access (read-only) + handoff habit — give `@architect` a **read-only** browse/fetch capability (`@openclaw/browser` + `web-readability`, GET-only, **no exec**, preserve its deny-exec/ro posture; treat fetched pages as untrusted prompt-injection surface) so it can read docs/repos/forums while planning; **plus** bake the **full-MXID handoff** convention into its SOUL (a bare `@name` is inert — it must emit the full MXID to delegate to `@hermes`/`@openclaw`). Promotes the "read-only web ingest" + "improve the architect" ideas. **Note:** OpenClaw `main` already browses (browser + readability enabled); this is architect-only. Consider doing **before P007** — a research-capable architect plans the docs work better. | openclaw/matrix | queued | depends on P004 | docs/openclaw/architect-agent.md |
 
 ---
 
