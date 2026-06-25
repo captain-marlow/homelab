@@ -10,11 +10,10 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** `P006 → P007 → P008`
+**Order — edit this line to reorder:** `P007 → P008`
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
-| P006 | Hermes on Mac (standalone → repo integration → OC bridge) — the central read-write executor + git-push node (institutionalizes the Mac-side role Claude Code plays now). **a (standalone) + b (repo integration) DONE 2026-06-24; c (Matrix loop) next — macOS `python-olm` blocker, may need an OC↔Hermes MCP bridge instead** | hermes | active | — | docs/hermes/hermes-mac.md |
 | P007 | Documentation style guide (`STYLE.md`) + Vale/markdownlint (terminology, headers, formatting, verbosity norms; derived from existing house style). Also covers the architect's response-style spec (shorter, fewer caveats) as a subset. | docs | queued | — (pairs with P008) | docs/meta |
 | P008 | Documentation sort pass — bring all docs to `STYLE.md` via the loop (architect audits/proposes → you gate → Hermes applies + pushes; Vale as the mechanical floor) | docs | queued | P004, P006, P007 | docs/meta |
 
@@ -45,6 +44,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | P003 | Architect agent + doc repo wiring (read-only Opus; own Max token; deploy-key repo clone)     | openclaw/matrix | done | docs/openclaw/architect-agent.md |
 | P004 | Two-agent loop (architect ↔ main ↔ you, mention-gated Drafting Table room)                  | openclaw/matrix | done | docs/openclaw/two-agent-loop.md |
 | P005 | Ollama LXC (CPU-only; `nomic-embed-text` → restored OpenClaw semantic memory)                | ollama          | done | docs/ollama/ollama-tier.md |
+| P006 | Hermes on Mac — standalone + repo integration + Matrix loop (`@hermes` live in Drafting Table, E2EE, mention-gated; Mac-side read-write/git-push executor) | hermes | done | docs/hermes/hermes-mac.md |
 
 ---
 

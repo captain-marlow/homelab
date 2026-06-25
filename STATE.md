@@ -59,11 +59,13 @@ OpenClaw's `agents.defaults.memorySearch` was repointed `provider: openai → ol
 
 ---
 
-## Hermes (Mac-side read-write / git-push executor) — P006 in progress
+## Hermes (Mac-side read-write / git-push executor) — P006 COMPLETE
 
-**Status: steps a + b DONE (2026-06-24); step c (Matrix loop) not started, with a macOS blocker.**
-Hermes (Nous Research agent) on the Mac is the institutional version of the read-write/git-push
-executor role Claude Code plays manually now — a hard dependency for **P008**.
+**Status: DONE (2026-06-24/25) — steps a (standalone) + b (repo integration) + c (Matrix loop) all
+verified.** Hermes (Nous Research agent) on the Mac is the institutional version of the
+read-write/git-push executor role Claude Code plays manually now — a hard dependency for **P008**.
+`@hermes` is now a live, E2EE, mention-gated participant in the Drafting Table room beside
+`@openclaw`/`@architect`.
 
 - **Standalone (a):** Hermes v0.17.0 on this Intel Mac (CLI; desktop app is ARM-only). Runs
   `anthropic/claude-sonnet-4-6` on its **own native PKCE OAuth** (Max plan). Migrate-from-OpenClaw
@@ -78,11 +80,18 @@ executor role Claude Code plays manually now — a hard dependency for **P008**.
   `origin/main` (commit `4f5c082`), independently verified; all three clones refreshed. **Three
   clones now exist** (Claude's working clone, Hermes's read-write clone, the architect's read-only
   clone on CT175) — refresh the others after any push.
-- **Loop (c) — not started:** Hermes *has* native Matrix support, but it needs `python-olm`, which
-  **has no build path on modern macOS**, and the Drafting Table room is **E2EE** — so Mac-side
-  Hermes may not be able to join the encrypted room. P006c must resolve this (test the install; else
-  an **OC↔Hermes MCP/OpenAI bridge** instead of direct Matrix) and define the two-executor division
-  of labor. Full record: `docs/hermes/hermes-mac.md`.
+- **Loop (c) — DONE:** `@hermes` joined **Drafting Table** over **direct E2EE Matrix**,
+  mention-gated. The "no build path on modern macOS" blocker was **Apple-Silicon-specific** — on this
+  **Intel** Mac, `brew install libolm` + the `mautrix[encryption]` extra build fine, proven
+  end-to-end (E2EE bootstrap + decrypt/reply). Non-admin account, token minted via `localhost:8008`
+  on CT171 (device `hermes`), env-driven config in `~/.hermes/.env`, recovery key backed up off-box;
+  auth pool stayed `hermes_pkce`-only. Two Hermes-specific **gating traps** fixed to match the other
+  bots: `MATRIX_AUTO_THREAD=false` + `MATRIX_THREAD_REQUIRE_MENTION=true` (auto-thread was bypassing
+  the mention gate), and a **tracked vendor patch** to `adapter.py` `_is_bot_mentioned` removing
+  bare-name matching (pill-only, re-apply after upgrades). Open/non-blocking: division of labor
+  (`@openclaw` vs `@hermes`, plan with the architect) + widening `MATRIX_ALLOWED_USERS` to wire the
+  autonomous loop; gateway is a manual `nohup` (durable = `hermes gateway install`). Full record:
+  `docs/hermes/hermes-mac.md`.
 
 ---
 
@@ -94,4 +103,11 @@ Established infrastructure. Proxmox docs partly compiled (knowledge-base + setup
 
 ## On the horizon (not yet active)
 
-Hermes on Mac — **standalone + repo integration done (P006a/b, 2026-06-24)**; the Matrix-loop step (P006c) is next but has a macOS `python-olm` blocker (see the Hermes section). Then → Proxmox maintenance agent (lives on Mac/Hermes, SSHes in — independent of the system it fixes) → local Whisper (deployed last via the Proxmox agent). *(Ollama LXC done — P005.)* A small local chat model on the Ollama tier (heartbeat/classification offload) and the "architect on a local model" decision can now be taken empirically.
+Hermes on Mac — **fully done (P006a/b/c, 2026-06-24/25)**: standalone + repo integration + the
+Matrix loop (`@hermes` live in Drafting Table over E2EE; the `python-olm` blocker was
+Apple-Silicon-specific and didn't apply to this Intel Mac). Next docs track is **P007 → P008** (style
+guide + sort pass, the latter using Hermes as the read-write executor). Other threads → Proxmox
+maintenance agent (lives on Mac/Hermes, SSHes in — independent of the system it fixes) → local
+Whisper (deployed last via the Proxmox agent). *(Ollama LXC done — P005.)* A small local chat model
+on the Ollama tier (heartbeat/classification offload) and the "architect on a local model" decision
+can now be taken empirically.

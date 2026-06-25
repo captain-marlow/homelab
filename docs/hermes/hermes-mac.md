@@ -1,11 +1,17 @@
 # Hermes on the Mac — Mac-side read-write / git-push executor (P006)
 
-**Status: P006 in progress.** Step **a** (standalone) and step **b** (repo integration) are
-**DONE and verified (2026-06-24)**. Step **c** (into the Matrix loop) is **not started** and has a
-newly-found macOS blocker (see below). This is the institutional version of the role Claude Code
-plays manually now — the Mac is the read-write executor + git-push node. Hermes is a hard
-dependency for **P008** (docs sort pass needs a central read-write executor; the architect is
-pull-only, `@openclaw` write is deferred).
+**Status: P006 COMPLETE.** Steps **a** (standalone), **b** (repo integration), and **c** (into the
+Matrix loop) are all **DONE and verified (2026-06-24/25)**. `@hermes` is a live, E2EE, mention-gated
+participant in the Drafting Table room alongside `@openclaw`/`@architect`. This is the institutional
+version of the role Claude Code plays manually now — the Mac is the read-write executor + git-push
+node. Hermes is a hard dependency for **P008** (docs sort pass needs a central read-write executor;
+the architect is pull-only, `@openclaw` write is deferred).
+
+> **The "macOS blocker" was Apple-Silicon-specific, not "modern macOS."** Hermes's pyproject and our
+> earlier notes said `python-olm` had "no native build path on modern macOS." The **official Hermes
+> Matrix doc** is more precise: the `[matrix]` extra is gated to Linux "due to libolm compilation
+> issues **on Apple Silicon**." This is an **Intel (x86_64)** Mac, so the build works fine once
+> `libolm` is present (proven end-to-end below). Lesson logged: read the vendor docs first.
 
 - **Host:** this Intel Mac (x86_64, macOS 14.8). Hermes CLI is supported on Intel; the desktop app
   is Apple-Silicon-only (we use the CLI).
@@ -91,32 +97,122 @@ new LXCs in `~/.ssh/config`; an LXC baseline-hardening role.
 
 ---
 
-## c. Into the loop — NOT started, with a macOS blocker
+## c. Into the loop — DONE (direct E2EE Matrix, mention-gated)
 
-The plan: a fresh `@hermes` Synapse account bound into **Drafting Table**
-(`!FKZTkwAIkROBtdHyCl`), mention-gated, as the Mac-side executor alongside `@openclaw`.
+`@hermes` is a fresh non-admin Synapse account (parallel to `@openclaw`/`@architect`) joined into
+**Drafting Table** (`!FKZTkwAIkROBtdHyCl`), reading/replying over **E2EE**, **mention-gated**. We
+took the **direct-Matrix** path (not the MCP bridge) once the blocker proved Intel-surmountable.
 
-**Hermes has native Matrix support** — `plugins/platforms/matrix/adapter.py`, mention-gating
-(`tests/gateway/test_matrix_mention.py`), via **`mautrix[encryption]`**. **But the blocker:** the
-`matrix` extra pulls **`python-olm`, which pyproject notes has "no native build path on modern
-macOS."** The Drafting Table room is **E2EE**, so a non-encrypted Matrix client can't read it. So
-**Mac-side Hermes may not be able to join the encrypted room at all.**
+### Dependency build — libolm + the matrix extra (Intel Mac)
 
-**P006c must first resolve this** — open options (decide next session, plan with the architect):
-1. Test whether `mautrix`/`python-olm` actually installs on this Intel Mac (pyproject implies no).
-2. If not: use the **OC ↔ Hermes bridge** instead of direct Matrix (build-plan Step 4c: an
-   OpenAI-compatible endpoint or **MCP** — Hermes can both serve and consume MCP: `hermes mcp serve`
-   / `hermes mcp add`), so `@openclaw`/architect reach Hermes without Hermes joining Matrix.
-3. Or an unencrypted side-room, or run Hermes's Matrix gateway off-Mac (defeats Mac-side intent).
+`mautrix[encryption]` needs **`python-olm`**, which binds the C library **libolm**. python-olm's
+sdist tries to build libolm from source via CMake and fails on modern CMake (`cmake_minimum_required
+< 3.5` removed — Hermes issue #4178). The fix is to install libolm **first** so python-olm only
+compiles its cffi bindings against it:
 
-**Also still open for P006c:**
-- **Division of labor** between the two executors — `@openclaw` (cluster-side) vs Hermes (Mac-side
-  read-write/git-push). architect plans → Ryan gates → *which executor applies?* Plan with the
-  architect.
-- **Token caveat (known):** mint any `@hermes` Synapse token via **`localhost:8008` on CT171** — the
-  public URL rejects password-login (403). Do **not** reuse `@openclaw`'s token.
+```bash
+brew install libolm            # 3.2.16 — DEPRECATED upstream & disabled in brew (2025-08-03),
+                               #   but still pours from the existing bottle. EOL crypto; see caveat.
+# matrix deps into Hermes's own venv (~/.hermes/hermes-agent/venv), libolm-linked:
+export VIRTUAL_ENV=~/.hermes/hermes-agent/venv CFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib
+~/.hermes/bin/uv pip install "mautrix[encryption]==0.21.0" aiosqlite==0.22.1 asyncpg==0.31.0 aiohttp-socks==0.11.0
+```
+
+These are exactly the specs Hermes's **lazy installer** (`tools/lazy_deps.py` → `platform.matrix`)
+would install on first channel use; pre-installing just makes it a controlled, verified step. Verify:
+`python -c "import mautrix, olm; from mautrix.crypto import OlmMachine"`. **Caveat:** libolm is EOL
+(deprecated, disabled in brew) — acceptable here but the reason the direct path is a tradeoff vs the
+(unused) MCP bridge; revisit if libolm ever stops pouring or on a move to Apple Silicon.
+
+### Account + token (cluster-side, Ryan executes)
+
+`@hermes` created with `register_new_matrix_user --no-admin` on CT171; token minted by
+password-login against **`localhost:8008`** (the public URL 403s on password-login — known P004
+finding). Device id **`hermes`** (re-minted from an initial `hermes-mac`; do it *before* first
+gateway start so no E2EE store is orphaned). The stale `hermes-mac` device/token is a harmless
+orphan — delete from Element → Sessions when convenient.
+
+### Config — all env-driven in `~/.hermes/.env` (the channel activates on these)
+
+```
+MATRIX_HOMESERVER=https://matrix.ryankennedy.dev   # token-auth works via the public URL
+MATRIX_USER_ID=@hermes:matrix.ryankennedy.dev
+MATRIX_ACCESS_TOKEN=<minted on CT171; 600 file only, never committed>
+MATRIX_E2EE_MODE=required
+MATRIX_RECOVERY_KEY_OUTPUT_FILE=/Users/ryan/.hermes/matrix-hermes-recovery-key.txt
+MATRIX_RECOVERY_KEY=<pinned after first-start bootstrap, for stable restarts>
+MATRIX_REQUIRE_MENTION=true
+MATRIX_THREAD_REQUIRE_MENTION=true     # ← critical; see "gating traps" below
+MATRIX_AUTO_THREAD=false               # flat replies, parity with the other bots
+MATRIX_ALLOWED_USERS=@ryan:…,@openclaw:…,@architect:…   # the bots MUST be listed to hand off (see "loop handoff")
+MATRIX_ALLOWED_ROOMS=!FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev
+MATRIX_HOME_ROOM=!FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev   # NOT _HOME_CHANNEL; silences the "no home channel" nudge
+```
+
+Start the gateway: `hermes gateway` (or `hermes gateway restart` to reload after edits — it holds a
+PID lock, so plain `pkill` is the wrong tool). On first start with `E2EE_MODE=required`, Hermes
+bootstraps cross-signing for the fresh device and **writes a recovery key** to the output file
+(0600). **Backed up off-box** to `~/homelab-secrets/matrix-hermes-recovery-key.txt` and pinned via
+`MATRIX_RECOVERY_KEY`. Auto-join works (`_on_invite` + a sync-reconciliation pass — more robust than
+OpenClaw's finicky encrypted-invite path): `@ryan` invites `@hermes` from Element and it joins.
+**Auth-pool stayed `hermes_pkce`-only throughout** — running the gateway did not re-pool Claude Code
+creds.
+
+### Gating traps (both hit live, both fixed) — Hermes ≠ OpenClaw
+
+The brake (respond only when addressed) needed two fixes the OpenClaw gate didn't:
+
+1. **Auto-thread defeats the mention gate.** Hermes defaults `MATRIX_AUTO_THREAD=true`; once it
+   replies in a thread, follow-ups land "in a bot thread" and `_on_message` **bypasses
+   `require_mention`** unless `MATRIX_THREAD_REQUIRE_MENTION=true` (the adapter's own
+   multi-agent-room safeguard, default off). Symptom: Hermes answered a non-mention. Fix: the two
+   env lines above (`AUTO_THREAD=false` + `THREAD_REQUIRE_MENTION=true`).
+2. **Bare-name matching.** `_is_bot_mentioned` treated the literal word "hermes" anywhere in a
+   message as a mention (a `\bhermes\b` regex branch) — looser than `@openclaw`/`@architect`, which
+   need a real pill / full MXID. **No config to disable it**, so we applied a **tracked vendor
+   patch**: removed the bare-localpart branch in `plugins/platforms/matrix/adapter.py`
+   (`_is_bot_mentioned`), leaving the MSC3952 `m.mentions` pill, full-MXID-in-body, and
+   `matrix.to/#/<mxid>` triggers. **Re-apply after any Hermes upgrade** (backup:
+   `adapter.py.bak-p006c-*`; the edit carries a `HOMELAB PATCH (P006c)` comment). With both fixes,
+   verified live: bare "hermes" → silence; a real `@hermes` pill → flat reply.
+
+### Loop handoff — addressed-message model (Hermes has no `contextVisibility`)
+
+**Hermes only ingests messages addressed to it.** Unlike OpenClaw, which separates *responding*
+(needs a mention) from *reading* (`contextVisibility:"all"` records all room traffic), Hermes's
+`require_mention` gate **drops** non-addressed messages *before they're recorded* — there is no
+passive-room-context knob (`fetch_history` exists but has no automatic caller). So `@hermes` cannot
+"see" undirected room chatter; it sees only what's pilled to it. Verified live: it could not quote
+back a plain (non-pill) message from `@architect`.
+
+This does **not** block the loop — the planner→executor handoff is *directed*, and works both ways:
+
+- **Planner → Hermes:** the planner must emit the **full MXID** `@hermes:matrix.ryankennedy.dev`
+  (which the gateway converts to a real `m.mentions` pill). A **bare `@hermes`** is inert text and
+  reaches nothing — exactly the OpenClaw finding. **Verified:** `@openclaw`'s full-MXID pill woke
+  Hermes and got an answer; `@architect`'s bare-text attempt did not. *The sender must also be in
+  `MATRIX_ALLOWED_USERS`* — that's why the bots were added to the allowlist (the actual enabler for
+  bot-to-bot handoff; the "blindness" above is the separate, accepted architectural limit).
+- **Hermes → Planner:** Hermes replies in plain room text; the planners *do* see it (they have
+  `contextVisibility:"all"`), so Hermes need not pill back unless it wants the planner to *act*.
+
+**Open (division-of-labor pass with the architect):** the architect must learn to emit the full
+MXID when handing off (a SOUL/convention matter, like `@openclaw` already does), and we decide which
+executor (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push) applies what.
+
+### Still open (non-blocking)
+
+- **Division of labor + architect handoff habit** — see "Loop handoff" above: decide which executor
+  (`@openclaw` vs `@hermes`) applies what, and get the architect emitting full-MXID pills. Plan with
+  the architect. (`MATRIX_ALLOWED_USERS` already includes both bots.)
+- **Gateway is a manual `nohup` process** (survives this session, not a reboot). For a durable
+  executor, install as a launchd service: `hermes gateway install`.
+- **Title-generator 401** — `Title generation failed: 401 Missing Authentication header` in the log;
+  cosmetic (session auto-naming), non-blocking.
 - **Memory:** optionally point Hermes at the **CT172 Ollama** tier (`192.168.1.172:11434`,
   `nomic-embed-text`) for semantic memory — reuse, don't rebuild.
+- **Loose secret:** `~/.hermes/.env` still carries a commented-but-plaintext `CLAUDE_CODE_OAUTH_TOKEN`
+  (line `#DISABLED-collides-with-ClaudeCode …`); inert, but scrub/rotate with the other March keys.
 
 ---
 
@@ -127,6 +223,11 @@ macOS."** The Drafting Table room is **E2EE**, so a non-encrypted Matrix client 
   a scoped task; run from inside the clone, or rely on `terminal.cwd`).
 - **Health:** `hermes doctor`, `hermes status`, `hermes auth list` (confirm pool = `hermes_pkce`
   only), `hermes config show`.
+- **Matrix gateway:** `hermes gateway` starts it; `hermes gateway restart` reloads after `.env`
+  edits (it holds a PID lock — `pkill` won't take); `hermes gateway status`. All Matrix config is in
+  `~/.hermes/.env` (`MATRIX_*`). After a Hermes upgrade, re-apply the `_is_bot_mentioned` patch and
+  re-confirm `brew list libolm` + the matrix deps in `venv` (else the channel silently lazy-installs
+  and the bare-name match returns).
 - **Push as Hermes:** the clone's remote is `git@github-hermes:…`; the deploy key authenticates.
   After a Hermes push, refresh Claude's clone (`git -C ~/Developer/homelab pull --ff-only`) and the
   architect's (`ssh openclaw '… git pull --ff-only'`).
