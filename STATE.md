@@ -115,11 +115,4 @@ agent (lives on Mac/Hermes, SSHes in, independent of the system it fixes) → lo
 Ollama tier (heartbeat/classification offload) and the "architect on a local model" decision can
 now be taken empirically.
 
-**Docs track (P007 complete, 2026-06-25):** `STYLE.md` is live in `docs/meta/` — house style
-conventions + the architect's response-style spec + voice section derived from Ryan's hand-written
-Proxmox originals. The mechanical floor is in place: markdownlint (structure) + Vale (prose, at
-`warning` level, non-blocking). Config files in repo root (`.vale.ini`, `.markdownlint.jsonc`);
-styles and accept-list under `styles/Homelab/`. See `docs/meta/linting.md` for how to run.
-**P008 (sort pass) is now unblocked.** Worklist: markdownlint reflow (~390 findings), Vale
-terminology fixes (lowercase `openclaw`/`proxmox`), ~92 body-prose em-dashes to revise, and
-`docs/ollama/` structural drift (missing `knowledge-base/` subfolder).
+**Docs track (P007 + P008 complete, 2026-06-25):** `STYLE.md` is live in `docs/meta/` (house style conventions + architect response-style spec + voice section). The mechanical floor is in place: markdownlint (structure) + Vale (prose, `warning` level, non-blocking). Config files in repo root (`.vale.ini`, `.markdownlint.jsonc`); styles under `styles/Homelab/`. See `docs/meta/linting.md` for how to run. **P008 (sort pass) complete:** zero non-MD013 markdownlint errors, zero Vale Terms warnings, body-prose em-dashes rewritten across all docs, `docs/ollama/knowledge-base/` stub created. Remaining EmDash hits (29) are all H1 titles or bold-lead `**X — Y:**` status labels (STYLE.md §3 convention, intentionally exempt).
