@@ -35,8 +35,11 @@ CT175 daily-driver. `hermes claw migrate --dry-run` confirmed it would import ~n
 providers found`). The rich config lives on CT175, and its auth (Codex OAuth / Max setup-token /
 file SecretRefs) doesn't transplant anyway — so we configured Hermes directly. **The March Mac
 OpenClaw install was then deleted** (`~/.openclaw` + the pnpm `openclaw` package; pnpm itself left
-intact). Its plaintext keys (gateway token, 2× Gemini, 2× OpenAI `sk-proj`) should be **rotated** —
-they sat unencrypted (now only in a session-scratch backup tarball).
+intact). Its plaintext keys (gateway token, 2× Gemini, 2× OpenAI `sk-proj`) sat unencrypted. **The
+on-disk copies are now gone** (`~/.openclaw`, the pnpm package, and the scratch tarball all deleted;
+a residual-key scan of the Mac came back clean), and the stale `ai.openclaw.gateway` LaunchAgent was
+removed. **Still owed:** revoking those orphaned keys at the providers (OpenAI / Google AI Studio) —
+Ryan's external action, hygiene since they were once exposed (gateway-token rotation = D001).
 
 **Auth — native PKCE OAuth, on the Max plan.** Hermes runs **`anthropic/claude-sonnet-4-6`** via
 its **own native PKCE OAuth** credential (`hermes auth add anthropic --type oauth` → source
@@ -152,7 +155,7 @@ MATRIX_HOME_ROOM=!FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev   # NOT _HOME_CHANNE
 Start the gateway: `hermes gateway` (or `hermes gateway restart` to reload after edits — it holds a
 PID lock, so plain `pkill` is the wrong tool). On first start with `E2EE_MODE=required`, Hermes
 bootstraps cross-signing for the fresh device and **writes a recovery key** to the output file
-(0600). **Backed up off-box** to `~/homelab-secrets/matrix-hermes-recovery-key.txt` and pinned via
+(0600). **Backed up off-box** to `~/.homelab-secrets/matrix-hermes-recovery-key.txt` and pinned via
 `MATRIX_RECOVERY_KEY`. Auto-join works (`_on_invite` + a sync-reconciliation pass — more robust than
 OpenClaw's finicky encrypted-invite path): `@ryan` invites `@hermes` from Element and it joins.
 **Auth-pool stayed `hermes_pkce`-only throughout** — running the gateway did not re-pool Claude Code
@@ -215,8 +218,11 @@ executor (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push) ap
   cosmetic (session auto-naming), non-blocking.
 - **Memory:** optionally point Hermes at the **CT172 Ollama** tier (`192.168.1.172:11434`,
   `nomic-embed-text`) for semantic memory — reuse, don't rebuild.
-- **Loose secret:** `~/.hermes/.env` still carries a commented-but-plaintext `CLAUDE_CODE_OAUTH_TOKEN`
-  (line `#DISABLED-collides-with-ClaudeCode …`); inert, but scrub/rotate with the other March keys.
+- **`CLAUDE_CODE_OAUTH_TOKEN`** value scrubbed from `~/.hermes/.env` (was a commented-but-plaintext
+  `sk-ant-oat01` token; Hermes auths via the pooled `hermes_pkce` cred in `~/.hermes/auth.json`, not
+  this line). **Still owed:** rotate that token's value at Anthropic, since it sat exposed.
+- **Secrets store** is now `~/.homelab-secrets` (renamed from `~/homelab-secrets`, 0700) — a
+  *backup* store, not a live dependency. Systematic backup of it + the live agent configs = **D007**.
 
 ---
 

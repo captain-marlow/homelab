@@ -73,8 +73,8 @@ And the plugin entry: `plugins.entries.matrix = { "enabled": true }`.
 
 | Secret | Location |
 |--------|----------|
-| `@openclaw` access token | `~/.openclaw/secrets/matrix-openclaw-access-token.txt` (600) on CT175; backup in `~/homelab-secrets/` on the Mac |
-| `@openclaw` / `@architect` passwords | `~/homelab-secrets/matrix-bot-creds.txt` on the Mac |
+| `@openclaw` access token | `~/.openclaw/secrets/matrix-openclaw-access-token.txt` (600) on CT175; backup in `~/.homelab-secrets/` on the Mac |
+| `@openclaw` / `@architect` passwords | `~/.homelab-secrets/matrix-bot-creds.txt` on the Mac |
 | E2EE crypto store (cross-signing keys) | `~/.openclaw/matrix/accounts/default/…` on CT175 (persists across restarts) |
 | E2EE recovery key | **not yet captured off-box** — follow-up (see below) |
 
@@ -129,7 +129,7 @@ aborted with an invalid config (the gateway kept running the prior good config; 
 python3 - <<'PY'
 import json, os, urllib.request, urllib.parse
 HS="https://matrix.ryankennedy.dev"; rid="!ROOMID:matrix.ryankennedy.dev"
-tok=open(os.path.expanduser("~/homelab-secrets/matrix-openclaw-access-token.txt")).read().strip()
+tok=open(os.path.expanduser("~/.homelab-secrets/matrix-openclaw-access-token.txt")).read().strip()
 p=urllib.parse.quote(rid)
 req=urllib.request.Request(HS+f"/_matrix/client/v3/rooms/{p}/join", data=b"{}", method="POST",
     headers={"Authorization":"Bearer "+tok,"Content-Type":"application/json"})

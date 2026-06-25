@@ -161,7 +161,7 @@ Token-authenticated requests (sync, whoami, send) work fine via the public URL â
 unauthenticated password-login is rejected on that path. Root cause not yet diagnosed
 (Element login works for `@ryan`); logged as a follow-up.
 
-So `~/homelab-secrets/matrix-bot-creds.txt` is **accurate, not stale**. Minting procedure:
+So `~/.homelab-secrets/matrix-bot-creds.txt` is **accurate, not stale**. Minting procedure:
 
 1. Log in as `@architect` against `localhost:8008` **on CT171** (device `architect-gateway`),
    password fed via stdin (never argv/chat).

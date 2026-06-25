@@ -88,7 +88,7 @@ and appends `public_baseurl`. It asserts each block so it fails loudly rather th
 file.
 
 **Back up the signing key off-box immediately** — it is unrecoverable and defines server identity.
-It lives at `~/homelab-secrets/matrix.ryankennedy.dev.signing.key` on the Mac (also belongs in a
+It lives at `~/.homelab-secrets/matrix.ryankennedy.dev.signing.key` on the Mac (also belongs in a
 password manager).
 
 **S3 — Wire.** pfSense host override `matrix.ryankennedy.dev → 192.168.1.110`; NPM proxy host
@@ -97,7 +97,7 @@ password manager).
 
 **S4 — Accounts.** `register_new_matrix_user` (shared secret): `@ryan` (admin), `@openclaw` and
 `@architect` (non-admin, for the agent loop). Registration stays closed. Bot passwords are in
-`~/homelab-secrets/matrix-bot-creds.txt`.
+`~/.homelab-secrets/matrix-bot-creds.txt`.
 
 **Verify:** `https://matrix.ryankennedy.dev/_matrix/client/versions` returns JSON over valid TLS;
 `/.well-known/matrix/client` advertises the homeserver. Element send/receive both directions, on
@@ -189,7 +189,7 @@ pct exec 171 -- docker compose -f /config/docker-compose.yml up -d
 
 | Secret | Location |
 |--------|----------|
-| Signing key (unrecoverable server identity) | `~/homelab-secrets/matrix.ryankennedy.dev.signing.key` + password manager |
-| Bot passwords (`@openclaw`, `@architect`)   | `~/homelab-secrets/matrix-bot-creds.txt` |
+| Signing key (unrecoverable server identity) | `~/.homelab-secrets/matrix.ryankennedy.dev.signing.key` + password manager |
+| Bot passwords (`@openclaw`, `@architect`)   | `~/.homelab-secrets/matrix-bot-creds.txt` |
 | Postgres password                            | CT171 `/config/.env` (600); also literal in `homeserver.yaml` |
 | DigitalOcean API token (DNS-01)              | stored in NPM's cert config (domain-scoped token) |
