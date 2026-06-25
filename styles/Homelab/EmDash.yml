@@ -1,7 +1,7 @@
 extends: existence
 message: "Avoid em-dashes in body prose (STYLE.md §7). Use a comma, period, or parentheses. (H1 subtitles are exempt.)"
 level: warning
-scope: paragraph
+scope: sentence
 nonword: true
 tokens:
   - '—'
