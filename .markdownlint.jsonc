@@ -1,0 +1,14 @@
+{
+  // P007 markdownlint config. Tuned to PASS the existing house-style docs,
+  // not to force rewrites. See docs/meta/STYLE.md for the style contract.
+  "default": true,
+  "MD013": { "line_length": 94, "tables": false, "code_blocks": false },
+  "MD024": { "siblings_only": true },
+  "MD004": { "style": "dash" },
+  "MD007": { "indent": 2 },
+  "MD046": { "style": "fenced" },
+  "MD048": { "style": "backtick" },
+  "MD036": false,
+  "MD040": false,
+  "MD033": false
+}

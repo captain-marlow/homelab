@@ -1,0 +1,7 @@
+node_modules/
+.git/
+docs_old/
+docs_new/
+docs_gpt/
+docs_complete/
+docs/meta/_voice-samples/
