@@ -238,6 +238,13 @@ executor (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push) ap
   take); `launchctl list | grep hermes` to confirm the job; logs at `~/.hermes/logs/gateway.log`.
   `hermes gateway uninstall` removes the LaunchAgent. All Matrix config is in `~/.hermes/.env`
   (`MATRIX_*`).
+- **Stopping Hermes — `gateway stop` won't stick under KeepAlive.** `hermes gateway stop` halts the
+  process, but launchd's `KeepAlive` immediately relaunches it — so it looks stopped for an instant,
+  then comes back (caused the 2026-06-26 "stayed online after stop" confusion). To **actually halt**
+  Hermes: use `launchctl bootout gui/$(id -u)/ai.hermes.gateway` (stop + prevent restart), or
+  `hermes gateway uninstall` for permanent removal. **Real status:** `launchctl list | grep hermes`
+  (not `hermes gateway status` alone — the process may already be back up). Use `hermes gateway
+  restart` only to *reload* a running gateway after `.env` edits.
 - **Post-upgrade acceptance test (do this after EVERY Hermes upgrade).** The pill-only gate depends
   on a vendor patch + an EOL libolm, and both fail **silently** — bare-name matching quietly returns,
   or the channel lazy-reinstalls unpatched. So after `hermes` updates, before trusting the loop:

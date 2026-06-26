@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line;** reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule, but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-06-26 (P010)
+**Last updated:** 2026-06-26 (P011)
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -10,11 +10,11 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** P010
+**Order — edit this line to reorder:** P011
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
-| P010 | Hermes proper setup & hardening — security/autonomous-action audit, least-privilege scoping, lifecycle docs, setup-parity scaffolding. Motivated by 2026-06-26 stalled-stream incident. | hermes | active | — | `docs/hermes/setup-hardening.md` |
+| P011 | Hermes follow-ups & autonomy-scoping — (1) stale-stream timeout: investigate Hermes-side stream/reconnect config, drop staleness threshold to minutes so stalls self-heal rather than hanging ~1096s; (2) audit the self-improving learning loop as an autonomy surface (self-nudges, autonomous skill creation, agent-curated memory — unscoped on a write/git-push executor; cross-check against Hermes security model, decide what may run unprompted); (3) division-of-labor + architect handoff: settle which executor owns what (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push), architect to emit full-MXID pills on handoff. P006 is complete; these are standing open items plus 2026-06-26 incident findings. (2) is the security-relevant item. | hermes | active | P006 done | `docs/hermes/hermes-mac.md` |
 
 ---
 
