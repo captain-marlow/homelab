@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line;** reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule, but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-06-25 (P008)
+**Last updated:** 2026-06-26 (P010)
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -10,10 +10,11 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** *(queue empty)*
+**Order — edit this line to reorder:** P010
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
+| P010 | Hermes proper setup & hardening — security/autonomous-action audit, least-privilege scoping, lifecycle docs, setup-parity scaffolding. Motivated by 2026-06-26 stalled-stream incident. | hermes | active | — | `docs/hermes/setup-hardening.md` |
 
 ---
 
