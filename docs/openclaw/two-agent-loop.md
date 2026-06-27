@@ -20,6 +20,35 @@ via the embedded runner) — `@architect` now answers live through the gateway t
 
 ---
 
+## Working protocol (approved 2026-06-27)
+
+The agreed human-gated planner↔executor loop for multi-step tasks.
+
+1. **Plan (architect ↔ Ryan):** iterate over multiple messages until the plan is solid.
+2. **Initiation gate (human-mandatory):** architect asks Ryan for permission before prompting
+   OpenClaw. Ryan approves or denies. This gate is mandatory — it preserves the
+   planner→gate→executor model and keeps every cross-bot exchange auditable.
+3. **Autonomous execution loop:** on approval, OpenClaw executes one step and mentions
+   `@architect:matrix.ryankennedy.dev` by **full MXID** with the result (the pill is what lets
+   architect read it). Architect verifies against live state and hands the next step or corrects.
+   Loop continues until done.
+4. **Security escalation (mid-loop):** either bot pauses and asks Ryan before acting on the
+   **danger set** — secrets/auth changes, deletion or scrub, firewall/network, external sends,
+   any irreversible op. Don't proceed on assumptions.
+5. **Close:** architect gives Ryan a verified summary — what changed, what was confirmed live,
+   any caveats.
+
+**Brakes:**
+- Single-purpose handoffs — one variable at a time.
+- Stuck or failed twice → surface to Ryan; don't ping-pong.
+- `botLoopProtection` (20 msgs / 60 s) is the runaway backstop, not the design.
+- This runs on the existing `allowBots:"mentions"` + full-MXID convention. **No config change** —
+  no `allowBots:"all"`, no `tools.sessions.visibility=all`. Mention-gating is a safety property,
+  not an obstacle.
+
+
+---
+
 ## Multi-account migration — additive, NOT a relocation
 
 The P003 follow-up suggested *relocating* `@openclaw` into a `channels.matrix.accounts{}` map.
