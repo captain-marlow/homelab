@@ -2,7 +2,7 @@
 
 *Loose pool of not-yet-projects. No order, no status discipline. When something firms up into a concrete next step, promote it to `projects.md` and delete it here.*
 
-**Last updated:** 2026-06-24
+**Last updated:** 2026-06-27
 
 ---
 
@@ -26,3 +26,4 @@
   (hand-aligned vs auto-formatted) and enforce it via markdownlint MD060 + a tightened
   STYLE.md §4. Deferred from P007 Step 2; currently MD060 is off. Pairs with the P008
   sort pass.
+- **Autonomous bot-to-bot channel — DEFERRED (deliberate, 2026-06-27).** Keep `allowBots:"mentions"` + full-MXID handoff convention as steady state. Two options were evaluated: (1) `allowBots:"all"` — un-mentioned cross-bot reading in any triggered turn; (2) `tools.sessions.visibility=all` — enables `sessions_send` DMs between agents. Both were declined: they trade away auditability and isolation and add loop risk (`botLoopProtection` as backstop rather than clean design). Empirically confirmed: bot↔bot `sessions_send` is currently blocked (`forbidden`; wants `tools.sessions.visibility=all`); room + full-MXID mention is the only proven path. If pursued later: investigate **scoping** (per-pair / one-directional) rather than blanket `all`, and confirm whether `allowBots:"all"` widens *invocation* or only *read-visibility within an already-triggered turn* before flipping. Only worth opening if autonomous continuous planner↔executor loops (no human relay) become a concrete goal.
