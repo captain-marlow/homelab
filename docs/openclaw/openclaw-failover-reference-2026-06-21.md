@@ -1,3 +1,5 @@
+> **Superseded 2026-06-27.** The shared three-deep chain documented here (`openai/gpt-5.5` → `anthropic/claude-sonnet-4-6` → `google/gemini-3-flash-preview`) is no longer the live configuration. Gemini was removed 2026-06-25. Model chains are now configured per-agent: `main` runs `anthropic/claude-sonnet-4-6` → `openai/gpt-5.5`; `architect` runs `anthropic/claude-opus-4-8` → `openai/gpt-5.5`. See `STATE.md` (OpenClaw section) for current per-agent setup and `MEMORY.md` for routing policy.
+
 # OpenClaw Failover & Auth Hardening — Reference Log
 
 **Date:** 2026-06-21

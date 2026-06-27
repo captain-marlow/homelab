@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line;** reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule, but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-06-26 (P011)
+**Last updated:** 2026-06-27 (P012)
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -48,6 +48,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | P007 | Documentation style guide (`STYLE.md`) + Vale/markdownlint (terminology, headers, formatting, verbosity norms; derived from existing house style). Also covers the architect's response-style spec (shorter, fewer caveats) as a subset. | docs | done | `docs/meta` |
 | P008 | Documentation sort pass — bring all docs to `STYLE.md` (markdownlint structure, Vale terminology, em-dash rewrites, Ollama knowledge-base stub). | docs | done | `docs/meta` |
 | P009 | Architect read-only web access (`web_fetch`, keyless HTTP GET — verified live) + full-MXID handoff convention in its SOUL | OpenClaw/matrix | done | `docs/openclaw/architect-agent.md` |
+| P012 | Per-agent model chain split — `main` → `anthropic/claude-sonnet-4-6` → `openai/gpt-5.5`; `architect` → `anthropic/claude-opus-4-8` → `openai/gpt-5.5`; `agents.defaults.model` documented as inherited base only, not main's effective chain; Gemini confirmed out of all text chains; `MEMORY.md` + `STATE.md` + failover-reference doc updated. | OpenClaw | done | `STATE.md`, `MEMORY.md`, `docs/openclaw/openclaw-failover-reference-2026-06-21.md` |
 
 ---
 
