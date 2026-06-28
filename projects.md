@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line;** reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule, but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-06-27 (P012)
+**Last updated:** 2026-06-28 (D009)
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -30,6 +30,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | D006 | Consolidate old Proxmox notes into `docs/proxmox` | Proxmox | queued | ongoing compilation |
 | D007 | Agent config versioning + backup (architect, OpenClaw, Hermes) | agents | idea | Two halves: (1) **version-control** sanitized identity/config in `agents/<name>/` — architect already there; add `agents/openclaw/` (SOUL + sanitized `openclaw.json`) and `agents/hermes/` (SOUL + sanitized `config.yaml`/`.env.example`), secrets externalized via SecretRef/env (never in repo). (2) **back up the secrets** — `~/.homelab-secrets` (Mac), CT175 `openclaw.json` secrets, CT171 `/config/.env`, Hermes `.env` + Matrix recovery key — to an encrypted off-box store + password manager, with a documented restore. The real gap: no systematic backup of live settings or of `~/.homelab-secrets` itself. Pairs with D001/D002 (rotation) and the agents/ layout. |
 | D008 | Local LLM on Vega 64 — build a Vulkan-backed GPU local-generation tier using Vega 64 (8 GB VRAM), Qwen3-8B Q4_K_M as the primary model, quantized KV cache, and context sized to preserve VRAM headroom. This is the GPU evolution of the CPU-only Ollama tier and the performance enabler for a future D005 resume. | ollama/proxmox | deferred | Open scoping question: CT172 passthrough vs. separate/new machine. See `docs/ollama/vega64-gpu-tier.md`. |
+| D009 | Proxmox Docker management — GitOps architecture design (Komodo + Ansible two-layer model, pull/GitOps, state-var Periphery, ZFS-backed rebuild safety). Design approved 2026-06-28. Implementation gated on D007 (secrets inventory) for rebuild-safety. | Proxmox | deferred | D007 prerequisite for disposable-LXC guarantee | `docs/proxmox/docker-gitops-architecture.md` |
 
 ---
 
