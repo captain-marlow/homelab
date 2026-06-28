@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line;** reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule, but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-06-28 (D009)
+**Last updated: 2026-06-28 (D011)
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -32,6 +32,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | D008 | Local LLM on Vega 64 — build a Vulkan-backed GPU local-generation tier using Vega 64 (8 GB VRAM), Qwen3-8B Q4_K_M as the primary model, quantized KV cache, and context sized to preserve VRAM headroom. This is the GPU evolution of the CPU-only Ollama tier and the performance enabler for a future D005 resume. | ollama/proxmox | deferred | Open scoping question: CT172 passthrough vs. separate/new machine. See `docs/ollama/vega64-gpu-tier.md`. |
 | D009 | Proxmox Docker management — GitOps architecture design (Komodo + Ansible two-layer model, pull/GitOps, state-var Periphery, ZFS-backed rebuild safety). Design approved 2026-06-28. Implementation gated on D007 (secrets inventory) for rebuild-safety. | Proxmox | deferred | D007 prerequisite for disposable-LXC guarantee | `docs/proxmox/docker-gitops-architecture.md` |
 | D010 | Hermes Matrix history-backfill (passive room buffer) — port from Discord adapter or upstream to Nous; source-patch, fragility caveat. See `docs/hermes/hermes-mac.md`. | hermes/matrix | deferred | OpenClaw-style passive room context analog for Hermes; prefer upstream over local fork. |
+| D011 | Matrix multi-agent routing/gating pass — three related items: (a) OpenClaw gate-miss: responded to a message pilled only to `@architect`; diagnose (raw-event) whether mention-detection leak or incorrect `was_mentioned` metadata; (b) `@room` trigger: decide target (architect-coordinates vs all-three) and wire it; (c) Hermes verbosity: locate + apply tool-streaming quiet setting. Do as one coherent pass. | matrix/routing | deferred | D011 triggered by 2026-06-28 bot-loop incident. Prerequisite: D011a diagnosis before any config changes. Protocol refinement (executor → basic status → architect verifies → reports to Ryan) is architect to draft next session, then implemented across both SOULs + two-agent-loop.md. |
 
 ---
 
