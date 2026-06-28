@@ -41,11 +41,24 @@ a residual-key scan of the Mac came back clean), and the stale `ai.openclaw.gate
 removed. **Still owed:** revoking those orphaned keys at the providers (OpenAI / Google AI Studio) —
 Ryan's external action, hygiene since they were once exposed (gateway-token rotation = D001).
 
-**Auth — native PKCE OAuth, on the Max plan.** Hermes runs **`anthropic/claude-sonnet-4-6`** via
-its **own native PKCE OAuth** credential (`hermes auth add anthropic --type oauth` → source
-`hermes_pkce`, its own client_id), on the Max subscription. Provider `anthropic`, set in
-`~/.hermes/config.yaml`. Verified: a one-shot ping returns `pong`, fast, with **no** Claude Code
-logout.
+**Auth/model: OpenAI Codex subscription OAuth (current, verified 2026-06-28).** Live
+`~/.hermes/config.yaml` now sets `model.default: openai/gpt-5.5` and
+`model.provider: openai-codex`, with **no** `model.base_url`. Auth is the `openai-codex` device-code
+OAuth flow against the ChatGPT/OpenAI subscription (`hermes auth list` shows an OAuth
+`device_code` entry). A config backup from the cutover exists at
+`~/.hermes/config.yaml.bak-openai-codex-20260628-090313`.
+
+The removed `model.base_url: https://openrouter.ai/api/v1` was **not** an intentional OpenRouter
+configuration; it was a never-removed Nous default left in the file. The current path is direct
+through the `openai-codex` provider, not OpenRouter.
+
+**Claude is off-limits for Hermes under current Anthropic policy.** The previous Anthropic
+subscription-OAuth setup (`anthropic/claude-sonnet-4-6`, `hermes_pkce`) now fails with Anthropic's
+third-party-app policy: subscription tokens used by third-party apps draw from extra usage / are
+blocked. The block follows the OAuth token's `client_id` identity, not the network route, so pointing
+Hermes directly at Anthropic instead of OpenRouter would not fix it. Hermes is not a first-party
+client like the Claude CLI. Leave Claude out of Hermes until policy changes or a separate API-key
+path is deliberately chosen.
 
 > **Hard-won gotcha — Hermes auto-pools Claude Code's credentials.** Hermes auto-discovers every
 > Anthropic credential on the machine and seeds a **rotation pool** (`hermes auth list`). On this
@@ -58,13 +71,16 @@ logout.
 > prefix, gated on `_is_oauth_token` — yet does **not** bump the session). The trigger was Hermes
 > **using the auto-pooled `claude_code` credential**.
 >
-> **Fix (verified):** `hermes auth list` → `hermes auth remove anthropic <label>` the `claude_code`
-> entry **and** any stale `CLAUDE_CODE_OAUTH_TOKEN` env entry (removal "suppresses" them — they
-> won't re-seed). Leave the pool with **only** `hermes_pkce`.
+> **Old fix (superseded by the OpenAI Codex cutover):** `hermes auth list` →
+> `hermes auth remove anthropic <label>` the `claude_code` entry **and** any stale
+> `CLAUDE_CODE_OAUTH_TOKEN` env entry (removal "suppresses" them — they won't re-seed). That kept
+> Anthropic isolated to `hermes_pkce`, but Anthropic's newer third-party-app policy later made the
+> subscription-OAuth path unusable for Hermes. Current live provider is `openai-codex`.
 >
 > **Footgun:** never run bare **`hermes auth add anthropic`** — it re-discovers and re-pools the
 > `claude_code` creds. An `sk-ant-api` key avoids the OAuth/impersonation path entirely (it's
-> excluded from `_is_oauth_token`) if a fully clean separation is ever wanted.
+> excluded from `_is_oauth_token`) if a fully clean separation is ever wanted, but that would be a
+> paid API-key path, not the subscription path.
 
 ---
 
@@ -152,14 +168,19 @@ MATRIX_ALLOWED_ROOMS=!FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev
 MATRIX_HOME_ROOM=!FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev   # NOT _HOME_CHANNEL; silences the "no home channel" nudge
 ```
 
+The safety posture is unchanged by the model/auth cutover: Matrix remains mention-gated, tool
+approvals remain manual (`approvals.mode: manual`), cron-triggered approvals remain denied
+(`cron_mode: deny`), and destructive slash commands still require confirmation.
+
 Start the gateway: `hermes gateway` (or `hermes gateway restart` to reload after edits — it holds a
 PID lock, so plain `pkill` is the wrong tool). On first start with `E2EE_MODE=required`, Hermes
 bootstraps cross-signing for the fresh device and **writes a recovery key** to the output file
 (0600). **Backed up off-box** to `~/.homelab-secrets/matrix-hermes-recovery-key.txt` and pinned via
 `MATRIX_RECOVERY_KEY`. Auto-join works (`_on_invite` + a sync-reconciliation pass — more robust than
 OpenClaw's finicky encrypted-invite path): `@ryan` invites `@hermes` from Element and it joins.
-**Auth-pool stayed `hermes_pkce`-only throughout** — running the gateway did not re-pool Claude Code
-creds.
+At initial Matrix bring-up, the Anthropic auth pool stayed `hermes_pkce`-only — running the gateway
+did not re-pool Claude Code creds. Current live model/auth has since moved to `openai-codex` device
+code OAuth; Matrix auth remains env-driven and unchanged.
 
 ### Gating traps (both hit live, both fixed) — Hermes ≠ OpenClaw
 
@@ -231,13 +252,16 @@ executor (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push) ap
 - **Run interactively:** `hermes` (TUI) or `hermes --cli`. Headless one-shot: `hermes -z "<task>"`.
 - **Headless autonomous executor:** `hermes -z "<task>" --cli --yolo` (auto-approves tool calls for
   a scoped task; run from inside the clone, or rely on `terminal.cwd`).
-- **Health:** `hermes doctor`, `hermes status`, `hermes auth list` (confirm pool = `hermes_pkce`
-  only), `hermes config show`.
+- **Health:** `hermes doctor`, `hermes status`, `hermes auth list` (current model auth should show
+  `openai-codex` OAuth `device_code`), `hermes config show`.
 - **Matrix gateway (launchd-managed):** runs as the `ai.hermes.gateway` LaunchAgent. `hermes gateway
   status`; `hermes gateway restart` reloads after `.env` edits (it holds a PID lock — `pkill` won't
   take); `launchctl list | grep hermes` to confirm the job; logs at `~/.hermes/logs/gateway.log`.
   `hermes gateway uninstall` removes the LaunchAgent. All Matrix config is in `~/.hermes/.env`
   (`MATRIX_*`).
+- **Mac-side restarts:** default to `launchctl`/the LaunchAgent path on this Mac. The `openclaw` CLI
+  is not on the Mac runtime `PATH`, so do not assume OpenClaw-style restart helpers are locally
+  available here.
 - **Stopping Hermes.** `hermes gateway stop` cleanly unloads the LaunchAgent and keeps it down
   despite bare `KeepAlive=true` in the plist (verified 2026-06-26: `launchctl list | grep hermes`
   returned empty after `gateway stop`; KeepAlive did not revive it — `gateway stop` appears to
@@ -257,5 +281,6 @@ executor (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push) ap
   After a Hermes push, refresh Claude's clone (`git -C ~/Developer/homelab pull --ff-only`) and the
   architect's (`ssh openclaw '… git pull --ff-only'`).
 - Config: `~/.hermes/config.yaml` (model/provider/terminal.cwd/toolsets — Context Engine tool
-  enabled). `~/.hermes/.env` (the old `CLAUDE_CODE_OAUTH_TOKEN` line is **disabled**; PKCE creds are
-  pooled, not in `.env`).
+  enabled). Current model block is `openai/gpt-5.5` + `provider: openai-codex`, with no
+  `model.base_url`; backup from the cutover is `~/.hermes/config.yaml.bak-openai-codex-*`.
+  `~/.hermes/.env` holds Matrix env; model OAuth creds are pooled, not stored there.

@@ -72,13 +72,16 @@ read-write/git-push executor role Claude Code plays manually now — a hard depe
 `@hermes` is now a live, E2EE, mention-gated participant in the Drafting Table room beside
 `@openclaw`/`@architect`.
 
-- **Standalone (a):** Hermes v0.17.0 on this Intel Mac (CLI; desktop app is ARM-only). Runs
-  `anthropic/claude-sonnet-4-6` on its **own native PKCE OAuth** (Max plan). Migrate-from-OpenClaw
-  skipped — the Mac's `~/.openclaw` was a stale March shell (now **deleted**; its plaintext keys
-  flagged for rotation). **Gotcha (resolved):** Hermes auto-pools the machine's *Claude Code*
-  credentials, and using them **logged the live VS Code session out** repeatedly — fixed by
-  isolating the cred pool to the `hermes_pkce` entry. **Never run bare `hermes auth add anthropic`**
-  (it re-pools them).
+- **Standalone (a):** Hermes v0.17.0 on this Intel Mac (CLI; desktop app is ARM-only). Current live
+  config is `openai/gpt-5.5` via `provider: openai-codex`, using device-code OAuth against the
+  ChatGPT/OpenAI subscription; `model.base_url` is unset. This replaced the failed
+  Anthropic-subscription-OAuth path. The old OpenRouter URL was a never-removed Nous default, not an
+  intentionally configured routing layer. Migrate-from-OpenClaw skipped — the Mac's `~/.openclaw`
+  was a stale March shell (now **deleted**; its plaintext keys flagged for rotation). **Gotcha
+  (resolved):** Hermes auto-pooled the machine's *Claude Code* credentials, and using them **logged
+  the live VS Code session out** repeatedly; Anthropic's current third-party-app policy now blocks
+  those subscription OAuth tokens for Hermes entirely, so Claude is off-limits to Hermes unless that
+  policy changes or a non-subscription API-key path is chosen.
 - **Repo integration (b):** own clone `~/Developer/homelab-hermes`, dedicated read-write **deploy
   key** (`github-hermes` alias, write access on the repo), commit identity
   `Hermes <hermes@ryankennedy.dev>`. **Proven:** Hermes added an idea to `ideas.md` and pushed to
@@ -90,14 +93,16 @@ read-write/git-push executor role Claude Code plays manually now — a hard depe
   **Intel** Mac, `brew install libolm` + the `mautrix[encryption]` extra build fine, proven
   end-to-end (E2EE bootstrap + decrypt/reply). Non-admin account, token minted via `localhost:8008`
   on CT171 (device `hermes`), env-driven config in `~/.hermes/.env`, recovery key backed up off-box;
-  auth pool stayed `hermes_pkce`-only. Two Hermes-specific **gating traps** fixed to match the other
+  the initial Anthropic auth pool stayed `hermes_pkce`-only until the later `openai-codex` cutover.
+  Two Hermes-specific **gating traps** fixed to match the other
   bots: `MATRIX_AUTO_THREAD=false` + `MATRIX_THREAD_REQUIRE_MENTION=true` (auto-thread was bypassing
   the mention gate), and a **tracked vendor patch** to `adapter.py` `_is_bot_mentioned` removing
   bare-name matching (pill-only, re-apply after upgrades). `MATRIX_ALLOWED_USERS` already includes
   both bots (the enabler for pill handoff — verified `@openclaw`→`@hermes`). Open/non-blocking:
   division of labor (`@openclaw` cluster-side vs `@hermes` Mac-side, plan with the architect). The
   gateway is now **durable** — a launchd LaunchAgent (`ai.hermes.gateway`, `RunAtLoad`+`KeepAlive`),
-  survives reboot/crash; restart verifies E2EE via the pinned recovery key. Full record:
+  survives reboot/crash; restart verifies E2EE via the pinned recovery key. Approval posture is
+  unchanged: `approvals.mode=manual`, `cron_mode=deny`, destructive slash commands confirmed. Full record:
   `docs/hermes/hermes-mac.md`.
 
 ---
