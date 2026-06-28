@@ -224,6 +224,26 @@ This does **not** block the loop. The planner→executor handoff is *directed*, 
 MXID when handing off (a SOUL/convention matter, like `@openclaw` already does), and we decide which
 executor (`@openclaw` cluster-side vs `@hermes` Mac-side read-write/git-push) applies what.
 
+## Session model & approvals (updated 2026-06-28)
+
+- **Session scope:** `matrix.session_scope: room` in `~/.hermes/config.yaml` (changed from
+  per-user-per-room `auto` + `group_sessions_per_user`). All addressed messages in a room now share
+  **one** Hermes session, so follow-up mentions continue the same session — matching OpenClaw's
+  room-scoped model. Verified live (lighthouse/donkey continuity test).
+- **Approving a gateway approval — two working methods:** (1) click the **✅** reaction on the
+  approval card; (2) **reply directly to the approval card** with `!approve` (the reply binds to the
+  prompt; no mention needed). **Does NOT work:** a standalone `!approve` *mention* — it starts a
+  fresh trigger and **interrupts** the waiting turn instead of resolving the approval.
+- **Don't interrupt mid-task:** any message sent to Hermes while it's running a task interrupts/ends
+  that turn and orphans it. Wait for completion; use the bound approval reply/emoji, not a new
+  mention.
+- **Verbosity (open item):** Hermes streams each tool call to the channel; quieting it is not yet
+  done (setting not located).
+- **Deferred enhancement — passive room buffer:** retroactive room context on trigger (the OpenClaw
+  `contextVisibility` analog) requires porting the Discord adapter's `history_backfill` into the
+  Matrix adapter — a source-level patch (fragile fork; **prefer upstreaming to Nous**). Tracked, not
+  implemented.
+
 ### Still open (non-blocking)
 
 - **Division of labor + architect handoff habit** — see "Loop handoff" above: decide which executor

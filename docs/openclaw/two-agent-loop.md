@@ -161,6 +161,10 @@ the bots are only ever in private, controlled rooms.
 > sometimes needed: a room message without a pill to the receiving bot is not guaranteed to land in
 > its context window.
 
+Hermes now uses room-scoped Matrix sessions for addressed messages, but still lacks OpenClaw-style
+passive room buffering; see `docs/hermes/hermes-mac.md` for the approval/session model and deferred
+history-backfill enhancement.
+
 ### Bots CAN trigger each other — but only via the full MXID
 
 **A bot's @mention fires the other bot only if it uses the full MXID**
