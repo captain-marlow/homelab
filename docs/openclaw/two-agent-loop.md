@@ -151,6 +151,16 @@ the bots are only ever in private, controlled rooms.
 > E2EE caveat: a bot can only read messages it holds Megolm keys for (sent while it was in the
 > room). `contextVisibility: "all"` surfaces decryptable history; it can't recover pre-join content.
 
+> **Trigger-snapshot semantics (observed 2026-06-28):** `contextVisibility: "all"` +
+> `historyLimit: 30` means a bot receives a *snapshot* of recent room history **at the moment it is
+> triggered** by a mention. This is not continuous monitoring — bots are idle between triggers and
+> only see the rolling window delivered when their mention fires. Practical consequence: an un-pilled
+> message sent while a bot is idle may fall outside its delivery window and simply not be seen.
+> Architect and main each get this buffered window when triggered; Hermes only receives content it
+> was directly pilled in (no buffer for un-addressed messages). This is why mid-session relays were
+> sometimes needed: a room message without a pill to the receiving bot is not guaranteed to land in
+> its context window.
+
 ### Bots CAN trigger each other — but only via the full MXID
 
 **A bot's @mention fires the other bot only if it uses the full MXID**
@@ -240,17 +250,24 @@ API with each bot's token (one-time per room). Watch for:
   - **Hermes:** clean CLI — `hermes sessions list` → `hermes sessions delete <id>` (or
     `hermes sessions prune`). Run when Hermes is idle, not mid-turn.
   - **OpenClaw (architect / main):** **no clean targeted-reset CLI or RPC** — `openclaw gateway
-    call` exposes no callable `session.reset` (it's only a config-policy key); the only built-in
-    trigger is the flaky chat path. But they **auto-prune** context (20-min TTL) and re-read the
-    repo each session, so **between projects they effectively self-reset** — an explicit reset is
-    rarely needed. Hard reset (e.g. to force a SOUL reload after editing it) = clear that room's
-    entry from `agents/<id>/sessions/sessions.json` (stop gateway → edit → restart).
+    call` exposes no callable `session.reset` (it's only a config-policy key). But they
+    **auto-prune** context (20-min TTL) and re-read the repo each session, so **between projects
+    they effectively self-reset** — an explicit reset is rarely needed. Hard reset (e.g. to force a
+    SOUL reload after editing it) = clear that room's entry from
+    `agents/<id>/sessions/sessions.json` (stop gateway → edit → restart).
+  - **`/reset` pilled to target agent (observed 2026-06-28):** Single-slash `/reset` **pilled to
+    the specific agent** does start a fresh CLI session for it. The "no response" symptom seen
+    earlier was a **timing gap** — the mention arrived while the new session was still spinning up,
+    not a failure of the mechanism. Working method: pill the target agent + `/reset`, then **wait a
+    beat before re-mentioning** (give the fresh session time to become ready). Not tested for
+    Hermes (see quirk in Follow-ups). Caution: Hermes may intercept the command even when the pill
+    targets another agent.
   - **DMs:** `//reset` works in a 1:1 DM (Element escapes to a literal `/reset`; one bot consumes
     it) — but a **DM session is separate from the room session**, so a DM reset does *not* reset
     the Drafting Table session.
-  > **Correction:** an earlier version of this doc claimed `/reset` (single slash) reliably resets
-  > in-room via the runtime, with `//reset` inert. Live testing disproved both halves for the group
-  > room — the reset reality is as above.
+  > **Correction:** an earlier version of this doc claimed `/reset` (single slash) unreliable in
+  > group rooms. Updated 2026-06-28: `/reset` pilled to the target agent works with a readiness
+  > gap. The unreliability previously documented was timing-related, not a mechanism failure.
 - **Add another gated room:** add a `channels.matrix.rooms["!id:…"]` entry (`allowBots:"mentions"`,
   `requireMention:true`), `openclaw config validate`, `openclaw gateway restart`.
 - **Restart after config edits:** `openclaw config validate && openclaw gateway restart`
@@ -271,3 +288,8 @@ API with each bot's token (one-time per room). Watch for:
 - **Resolve/reject the pending CLI scope-upgrade request** — carried over from P002.
 - **Architect repo refresh is manual** (`git pull`) — tighten to cron/webhook only if it proves
   annoying.
+- **Hermes slash-command handler not mention-scoped (observed 2026-06-28):** Ryan pilled `/reset`
+  to `@openclaw`; Hermes (not openclaw) popped a "Confirm /new" prompt. Hermes's command handler
+  appears to fire on slash-commands in the room regardless of whether the pill addressed it.
+  Separate from the message gate (which is working). Needs investigation: Hermes's command path
+  should check `was_mentioned` before acting, or otherwise scope itself to addressed commands only.
