@@ -1,0 +1,50 @@
+# Secrets inventory — D007 Phase 0
+
+**Status:** Phase 0 metadata inventory. No secret values are recorded here.
+
+This inventory records where credentials live, how they are stored, who consumes them, and whether an off-box copy is known. Backup and rotation are later gated phases.
+
+## Scope and rules
+
+- Metadata only: artifact names, host/path, storage form, consumers, backup status, provenance, and notes.
+- Do not record credential values, bearer strings, private-key bodies, recovery phrases, or database rows.
+- Rows marked `unknown` need a later gated verification step; they are not approval to rotate or delete.
+
+## Inventory
+
+| artifact | host/path | type | storage form | consumer | backed-up off-box? | generated-here vs injected? | used-elsewhere? | notes |
+|---|---|---|---|---|---|---|---|---|
+| Hermes OpenAI Codex OAuth credential | Mac: `~/.hermes/auth.json` | OAuth credential | Hermes auth pool JSON, mode `0600` | Hermes model provider `openai-codex` | unknown | generated here by device-code OAuth | yes: Hermes CLI/gateway | `hermes auth list` shows `openai-codex` OAuth via device-code; no values recorded. |
+| Hermes legacy Anthropic OAuth credential | Mac: `~/.hermes/auth.json` | OAuth credential | Hermes auth pool JSON, mode `0600` | inactive for current Hermes model path | unknown | generated here by Hermes PKCE OAuth | no current Hermes use | Kept in auth pool but current config uses `openai-codex`; Claude subscription OAuth is blocked for Hermes under current Anthropic policy. |
+| Hermes Matrix environment | Mac: `~/.hermes/.env` | environment file | env-file, mode `0600` | Hermes Matrix gateway | partly | injected/generated mix | yes: Hermes gateway | Key names observed: Matrix homeserver/user/access/recovery/allowlist/gating settings plus non-secret debug/runtime settings. Values not recorded. |
+| Hermes config | Mac: `~/.hermes/config.yaml` | config file | YAML, mode `0600` | Hermes CLI/gateway | unknown | generated/edited here | yes: Hermes runtime | Contains current model/provider settings and provider timeout metadata. No secret values recorded. |
+| Hermes OpenAI Codex cutover backup | Mac: `~/.hermes/config.yaml.bak-openai-codex-20260628-090313` | config backup | YAML backup, mode `0600` | rollback/reference only | unknown | generated here during model cutover | no live consumer | Backup may preserve prior model/provider metadata; treat as sensitive until backed up/retired. |
+| Hermes Matrix recovery key | Mac: `~/.hermes/matrix-hermes-recovery-key.txt` | recovery secret | single-value file, mode `0600` | Hermes Matrix E2EE restart/cross-signing recovery | yes | generated here at Matrix bootstrap | yes: Hermes Matrix E2EE | Off-box copy exists in `~/.homelab-secrets/matrix-hermes-recovery-key.txt`. |
+| Hermes GitHub write deploy key | Mac: `~/.ssh/hermes_homelab_deploy` | SSH private key | OpenSSH private key, mode `0600` | Git remote alias `github-hermes` | unknown | generated here | yes: GitHub deploy key for homelab repo write access | Fingerprint observed: `SHA256:YzrkJJ24P3B0LQFUEJVenOYjLIDUX2LycYW5bZQvjJU`; public half at `.pub`, mode `0644`. |
+| Homelab secrets directory | Mac: `~/.homelab-secrets` | backup directory | directory, mode `0700` | human/operator backup source | no/unknown | mixed backup copies | no live runtime dependency intended | Needs its own off-box backup in a later phase. |
+| Matrix bot credentials backup | Mac: `~/.homelab-secrets/matrix-bot-creds.txt` | backup secret file | text file, mode `0600` | human/operator recovery | no/unknown | injected backup | no live runtime dependency intended | Metadata only; contents not read into inventory. |
+| Hermes Matrix recovery backup | Mac: `~/.homelab-secrets/matrix-hermes-recovery-key.txt` | backup secret file | single-value file, mode `0600` | human/operator recovery | no/unknown | copied from Hermes recovery output | no live runtime dependency intended | Backup copy for Hermes E2EE recovery. |
+| OpenClaw Matrix access backup | Mac: `~/.homelab-secrets/matrix-openclaw-access-token.txt` | backup secret file | single-value file, mode `0600` | human/operator recovery | no/unknown | copied from OpenClaw Matrix setup | no live runtime dependency intended | Metadata only; contents not read into inventory. |
+| Synapse signing key backup | Mac: `~/.homelab-secrets/matrix.ryankennedy.dev.signing.key` | backup secret file | signing-key file, mode `0600` | Synapse homeserver recovery | no/unknown | copied from CT171/Synapse setup | no live runtime dependency intended | Metadata only; contents not read into inventory. |
+| OpenClaw active gateway credential | CT175: `~/.openclaw/secrets/gateway-token.txt` | gateway credential | single-value file, mode `0600` | OpenClaw gateway | unknown | generated on CT175 | yes: OpenClaw gateway | Referenced by active config SecretRef provider `gateway_token_file`; value not recorded. |
+| OpenClaw active config | CT175: `~/.openclaw/openclaw.json` | config file | JSON, mode `0600` | OpenClaw agents/gateway | unknown | generated/edited on CT175 | yes: OpenClaw runtime | Active config references file-backed SecretRefs; web search provider remains disabled, memory search is Ollama-backed. |
+| OpenClaw active env file | CT175: `~/.openclaw/.env` | environment file | env-file, mode `0600` | OpenClaw runtime/plugins | unknown | injected on CT175 | yes: OpenClaw runtime | Key names observed: Telegram bot credential, Google web-search key, OpenAI Whisper key, PATH. Values not recorded. |
+| OpenClaw phase-6 env backup | CT175: `~/.openclaw/.env.bak-phase6-20260622T020945Z` | env backup | env-file backup, mode `0600` | rollback/reference only | unknown | generated on CT175 | no live consumer | Contains historical key names including gateway credential. Treat as sensitive backup. |
+| OpenClaw active JSON backups | CT175: `~/.openclaw/openclaw.json.bak*` | config backups | JSON backups, mostly mode `0600` | rollback/reference only | unknown | generated on CT175 | no live consumer | Multiple historical backups exist and may preserve old SecretRefs or inline settings. Treat as sensitive until reviewed/retired. |
+| OpenClaw Google web-search key | CT175: `~/.openclaw/secrets/google-websearch-api-key.txt` | API key | single-value file, mode `0600` | disabled Google web-search path | unknown | injected on CT175 | no active use observed | Active config still defines a file provider and disabled web-search config; web search is disabled. Not removed in this phase. |
+| OpenClaw Gemini API key | CT175: `~/.openclaw/secrets/gemini-api-key.txt` | API key | absent | none | n/a | previously injected/re-mintable | no | Approved deletion target was already absent. Active config has no reference to this exact file. Recorded as removed/absent. |
+| OpenClaw Matrix access credentials | CT175: `~/.openclaw/secrets/matrix-openclaw-access-token.txt`; `~/.openclaw/secrets/matrix-architect-access-token.txt` | Matrix access credentials | single-value files, mode `0600` | OpenClaw and Architect Matrix accounts | yes for OpenClaw copy on Mac; Architect copy unknown | minted during Matrix setup | yes: Matrix bot sessions | Metadata only; values not recorded. |
+| OpenClaw main agent auth store | CT175: `~/.openclaw/agents/main/agent/openclaw-agent.sqlite` | SQLite credential store | SQLite file, mode `0600` | OpenClaw `main` agent model/auth runtime | unknown | generated on CT175 | yes: main agent | File metadata observed. Deeper row inspection not performed in this pass after approval timeout; expected to include model OAuth/auth metadata. |
+| OpenClaw architect auth store | CT175: `~/.openclaw/agents/architect/agent/openclaw-agent.sqlite` | SQLite credential store | SQLite file, mode `0600` | OpenClaw `architect` agent model/auth runtime | unknown | generated on CT175 | yes: architect agent | File metadata observed. Deeper row inspection not performed in this pass after approval timeout; expected to include model OAuth/auth metadata. |
+| OpenClaw auth-store backup | CT175: `~/.openclaw/agents/main/agent/auth-store.bak.20260621_041830/openclaw-agent.sqlite` | SQLite credential backup | SQLite backup, mode `0600` | rollback/reference only | unknown | generated on CT175 | no live consumer | Treat as sensitive historical auth backup. |
+| OpenClaw SecretRef recovery backup | CT175: `~/.openclaw/recovery-backups/secretref-phase1-20260622T013008Z/agent/openclaw-agent.sqlite` | SQLite credential backup | SQLite backup, mode `0600` | rollback/reference only | unknown | generated on CT175 | no live consumer | Treat as sensitive historical auth backup. |
+| OpenClaw read-only deploy key | CT175: `~/.ssh/architect_homelab_deploy` | SSH private key | OpenSSH private key, mode `0600` | Git remote alias `github-homelab` for architect/read-only clone | unknown | generated on CT175 | yes: GitHub deploy key for homelab repo read access | Fingerprint observed: `SHA256:XlZdT50LT9dhfIl87rlSXzS0HPBrYzjVgTco+K4ivZA`; public half at `.pub`, mode `0644`. |
+| CT171 Synapse environment | CT171: `/config/.env` | environment file | env-file, mode `0600` | Synapse/Postgres container stack | unknown | generated/injected on CT171 | yes: Synapse stack | Key name observed: Postgres password. Registration shared secret may be elsewhere in Synapse config; not found in this env-file metadata pass. |
+
+## Follow-up candidates for later gated phases
+
+- Decide which historical `openclaw.json.bak*` and SQLite auth backups should be retained, moved into encrypted backup, or deleted.
+- Back up `~/.homelab-secrets` itself to an encrypted off-box store.
+- Verify CT171 registration shared secret location if it is not in `/config/.env`.
+- Run a deeper OpenClaw auth-store metadata audit with an approved local script that prints provider labels only.
+- Rotate or remove dormant Google web-search and Whisper keys after confirming future provider choices.
