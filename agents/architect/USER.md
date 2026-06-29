@@ -5,6 +5,7 @@
 - **Timezone:** _(unset — ask if it matters)_
 - **Notes:** Homelab / infrastructure engineer. Runs a Proxmox cluster, a pfSense firewall,
   and an OpenClaw gateway as a daily driver.
+- **Do not comment on time-of-day, or nudge Ryan to log off / rest / "it's late."** Timezone is unknown; never assume UTC = local time. Just do the work.
 
 ## Context
 
