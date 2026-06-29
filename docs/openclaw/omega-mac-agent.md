@@ -29,3 +29,33 @@
 - *Matrix:* Hermes gateway `ai.hermes.gateway` (launchd); room gating already allows `@openclaw` + `@architect`; omega = new identity, same shape.
 - *Git r/w:* Hermes clone `~/Developer/homelab-hermes`, remote `git@github-hermes:captain-marlow/homelab.git`, key `~/.ssh/hermes_homelab_deploy`, repo-local identity `hermes@homelab`; omega = own `github-omega` key + clone + distinct identity.
 - *Infra:* SSH aliases `openclaw` (.175) + `pve01` (.19 root) both live; Proxmox `pvesh`/`qm`/`pct` on pve01; ansible inventory `config/proxmox/ansible/inventory/hosts.ini`. Both aliases share `~/.ssh/id_ed25519` → omega should get its own key (least-privilege).
+
+## Decisions locked (2026-06-29)
+
+- Agent `omega`; gateway home `~/.openclaw` (clean — the stale March `~/.openclaw` was deleted in P006); isolated auth `CLAUDE_CONFIG_DIR=~/.openclaw/.claude` (separate from Ryan's interactive `~/.claude`).
+- Auth method: **dedicated Max setup-token** (same mechanism as architect/main on CT175), not interactive `claude auth login` — sidesteps device-login eviction by construction.
+- Own SSH keypair, proper-named `omega_homelab_ed25519` (parallels Hermes's `hermes_homelab_deploy`); provisioned onto **pve01** (`root@192.168.1.19`) and CT175 (`openclaw@192.168.1.175`).
+- Git: `github-omega` write deploy key, own clone, commit identity `Omega <omega@ryankennedy.dev>`.
+- Model chain: mirror main (executor tier) — `anthropic/claude-sonnet-4-6` → `openai/gpt-5.5`.
+- Isolation posture: same macOS user (`ryan`), config-level boundary (`CLAUDE_CONFIG_DIR` + clean env). Separate-macOS-user is the hardening fallback if the live non-eviction test fails.
+
+## Phase 1 — install + wire `claude-cli` (detailed, additive; Hermes stays live)
+
+**Step 1 — Auth-isolation proof (opening gate, caveat 2). Before installing anything:**
+
+1. Create `~/.openclaw/.claude`.
+2. Mint omega a dedicated Max setup-token into that dir (Ryan present for the mint).
+3. In a clean shell (`CLAUDE_CONFIG_DIR=~/.openclaw/.claude`, no inherited `ANTHROPIC_API_KEY`/`CLAUDE_CODE_OAUTH_TOKEN`), run one trivial `claude` turn → succeeds on the subscription.
+4. Non-eviction check: confirm Ryan's interactive Claude Code (`~/.claude`) is still logged in — no re-login prompt.
+
+*Gate:* omega runs a turn from its own dir AND Ryan's interactive session survives. If Ryan's session is evicted → STOP, isolation failed, fall back to separate-macOS-user.
+
+**Step 2 — Install the gateway:**
+
+- Install OpenClaw (match CT175's line), gateway home `~/.openclaw`, single agent `omega`, runtime `claude-cli` → `/Users/ryan/.local/bin/claude`, model chain sonnet-4-6 → gpt-5.5.
+- Run under a launchd LaunchAgent (mirroring `ai.hermes.gateway`) with an explicit clean env + `CLAUDE_CONFIG_DIR=~/.openclaw/.claude`.
+- Port CT175's tuned config (contextPruning TTL 20m, params, behavior conventions). `memorySearch` → Ollama on CT172 is LAN-reachable but **deferred** in Phase 1 (one variable at a time).
+
+**Step 3 — Probe gate:** `openclaw models status --probe` runs a real turn through `claude-cli` on the subscription. *Gate:* successful turn.
+
+**Rollback:** omega has no Matrix surface and no write/exec/SSH yet — isolated local install. Tear-down = remove `~/.openclaw` + revoke omega's setup-token; Hermes untouched.
