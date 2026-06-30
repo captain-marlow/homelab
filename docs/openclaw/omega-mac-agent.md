@@ -59,3 +59,37 @@
 **Step 3 — Probe gate:** `openclaw models status --probe` runs a real turn through `claude-cli` on the subscription. *Gate:* successful turn.
 
 **Rollback:** omega has no Matrix surface and no write/exec/SSH yet — isolated local install. Tear-down = remove `~/.openclaw` + revoke omega's setup-token; Hermes untouched.
+
+## Phase 1 — COMPLETE (2026-06-30)
+
+Omega is installed, configured, durable, and isolated on the Mac. Probes `usable`; Ryan's interactive Claude Code confirmed unaffected.
+
+**Install & runtime**
+
+- OpenClaw 2026.6.10 on the Mac (npm global; `/usr/local` prefix is `ryan:admin`, no sudo). Gateway home `~/.openclaw`, loopback `:18790`.
+- Single agent `omega`, runtime `claude-cli` → `/Users/ryan/.local/bin/claude` (2.1.195). Node v25.8.1 (compat confirmed).
+
+**Auth & isolation**
+
+- omega authenticates on a dedicated **Anthropic Max setup-token** (subscription OAuth, not an API key), stored in omega's **own sqlite** (`~/.openclaw/agents/omega/agent/openclaw-agent.sqlite`). `CLAUDE_CONFIG_DIR=/Users/ryan/.openclaw/.claude`, shell env off.
+- Fully isolated from Ryan's interactive Claude Code, which uses the **macOS Keychain** (Claude Code 2.1.195 stores first-party OAuth in Keychain, not `~/.claude/.credentials.json`).
+- **Eviction scare resolved as a false-positive:** the SSH check reporting `.credentials.json` absent + "Not logged in" was (a) creds now in Keychain, (b) non-interactive SSH can't read Keychain. Ryan's interactive `claude auth status` = `loggedIn: true`, `max`, `firstParty`. No eviction occurred.
+
+**Model chain**
+
+- omega: primary `anthropic/claude-sonnet-4-6`; fallback `openai/gpt-5.5` **pending** (codex/subscription OAuth — no API key per policy). `opus-4-8` left wired (+`opus` alias) for a future agent.
+- Fleet, verified live (docs were accurate — no drift): `main` `sonnet-4-6→gpt-5.5`; `architect` `opus-4-8→gpt-5.5`; `omega` `sonnet-4-6→gpt-5.5`. The `claude-cli/claude-opus-4-6` in probe output is the anthropic **plugin catalog** target, not routing.
+
+**Durability**
+
+- launchd LaunchAgent `ai.openclaw.omega.gateway` (`RunAtLoad`+`KeepAlive`). Env: `PATH=/usr/local/bin:/Users/ryan/.local/bin:/usr/bin:/bin`, `CLAUDE_CONFIG_DIR=/Users/ryan/.openclaw/.claude`, `OPENCLAW_MDNS_HOSTNAME=omega-openclaw`. Auto-recovery verified (`launchctl kickstart -k`).
+- mDNS advertises `omega-openclaw.local` (Mac OS hostname is `omega` → clash resolved). `OPENCLAW_MDNS_HOSTNAME` is **env-only** (no config key).
+
+**Auth principle (durable fleet policy):** **No API keys, ever — subscription-based OAuth only.** Anthropic Max setup-tokens (each agent its own, shared Max sub) and OpenAI codex/ChatGPT-subscription OAuth (each agent its own session). Independently revocable per agent.
+
+**Operational gotchas:**
+
+- `meta.lastTouchedAt`: raw file overwrites (`cat >`) trip the gateway's auto-restore-from-last-good — use `openclaw config set`.
+- CT175 `anthropic:claude-cli` OAuth expiry is non-breaking (static durable token leads); refresh via `openclaw models auth login --provider anthropic --method cli` when convenient.
+
+**Outstanding before Phase 2:** provision omega's `gpt-5.5` codex-OAuth fallback (device-code login).
