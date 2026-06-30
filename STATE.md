@@ -109,10 +109,11 @@ read-write/git-push executor role Claude Code plays manually now — a hard depe
 
 ## Omega (Mac OpenClaw executor replacement) — D012 ACTIVE
 
-**Status: Phase 2 complete (2026-06-30).** Omega is the planned OpenClaw-based successor to Hermes: a Mac-side gateway/agent using the `claude-cli` runtime on Ryan's Claude Max subscription, with Hermes kept installed-but-disabled only at final cutover.
+**Status: Phase 2.5 complete (2026-06-30).** Omega is the planned OpenClaw-based successor to Hermes: a Mac-side gateway/agent using the `claude-cli` runtime on Ryan's Claude Max subscription, with Hermes kept installed-but-disabled only at final cutover.
 
 - **Phase 1 complete:** OpenClaw 2026.6.10 installed on the Mac under `~/.openclaw`, durable via launchd `ai.openclaw.omega.gateway`, loopback `:18790`, runtime `/Users/ryan/.local/bin/claude`, isolated `CLAUDE_CONFIG_DIR=/Users/ryan/.openclaw/.claude`, dedicated Max setup-token, and no eviction of Ryan's interactive Claude Code session.
 - **Phase 2 complete:** Matrix identity `@omega:matrix.ryankennedy.dev` joined Drafting Table (`!FKZTkwAIkROBtdHyCl`), plugin running healthy, E2EE/cross-signing/key backup verified, `contextVisibility: all`, `historyLimit: 50`, `requireMention: true`, `allowBots: mentions`. Live gates: full-MXID handoff from `@openclaw` woke omega and produced an encrypted reply; unmentioned control message stayed silent.
+- **Phase 2.5 complete:** Ryan-initiated DM path is functional for `@omega` (Ryan-only `dm.allowFrom`, `dm.sessionScope: per-room`, Matrix `autoJoin: allowlist` for Ryan). The test invite was manually API-accepted, so autoJoin auto-fire remains unproven; clean re-test = Ryan re-invites with no manual join and watch one sync cycle.
 - **Not executor yet:** Phase 3 still needs omega's codex-OAuth `gpt-5.5` fallback plus `github-omega` repo/write identity and SSH/infra access under manual approvals. Hermes remains the active read-write executor until Phase 4 cutover.
 
 ---

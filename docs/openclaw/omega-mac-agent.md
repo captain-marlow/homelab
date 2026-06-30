@@ -123,4 +123,23 @@ Omega is wired into the Drafting Table Matrix room as a new, E2EE-capable, menti
 
 - Reading older Hermes-encrypted messages through omega currently shows Megolm "sender's device has not sent us the keys" for some Hermes events. This does **not** block omega's own Matrix send/receive path, but it means historical Hermes ciphertext is not a Phase-2 proof source. Future validation should use fresh encrypted client messages or bot handoffs after all devices have shared room keys.
 
+## Phase 2.5 — Ryan→omega DM enabled (2026-06-30)
+
+Omega now accepts direct messages from Ryan as a human-to-agent path. This is deliberately **not** a bot↔bot DM path; bot handoff stays in Drafting Table via full-MXID mentions.
+
+**Config change**
+
+- DM access remains Ryan-only: `dm.allowFrom: ["@ryan:matrix.ryankennedy.dev"]`, with `dm.sessionScope: per-room` so encrypted DM context stays isolated from room sessions.
+- The Matrix channel was patched with `openclaw config set` (not raw file edits, to preserve `meta.lastTouchedAt`) to change `autoJoin: off → allowlist` and set `autoJoinAllowlist: ["@ryan:matrix.ryankennedy.dev"]`. Persistence was verified after gateway restart.
+- omega's stale `m.direct` state was cleared during the fix so the active Ryan↔omega DM room is the canonical direct channel.
+
+**Live gate**
+
+- Ryan-initiated DM is functional: omega decrypts and replies in the DM without needing an `@omega` mention. This is intentionally narrower than room behavior, where `requireMention: true` remains the brake.
+
+**Caveat — autoJoin auto-fire unverified**
+
+- The invite used during the test was manually API-accepted, so the test cannot distinguish "autoJoin fired late" from "autoJoin did not fire." Do **not** record this as an auto-join delay bug.
+- Clean re-test, if it matters later: Ryan re-invites omega with no manual intervention, then watch whether omega self-joins within a Matrix sync cycle.
+
 **Outstanding before Phase 3:** provision omega's `gpt-5.5` codex-OAuth fallback (device-code login), then add executor credentials/capabilities (`github-omega`, repo clone, SSH/infra access) under manual approvals.
