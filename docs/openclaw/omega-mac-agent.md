@@ -1,6 +1,6 @@
 # Omega — Mac OpenClaw executor (Hermes replacement)
 
-**Status:** Planned 2026-06-29. Replace Hermes with an OpenClaw agent (`omega`) on the Mac, running the `claude-cli` runtime against Ryan's Claude **Pro/Max subscription** (first-party OAuth — sidesteps the Anthropic third-party block that forced Hermes onto OpenAI). Solves OpenAI-usage burn **and** Hermes's buffer/session/reset quirks. Proven pattern: architect/main already run `claude-cli` on CT175.
+**Status:** Phase 2 complete 2026-06-30. Replace Hermes with an OpenClaw agent (`omega`) on the Mac, running the `claude-cli` runtime against Ryan's Claude **Pro/Max subscription** (first-party OAuth — sidesteps the Anthropic third-party block that forced Hermes onto OpenAI). Solves OpenAI-usage burn **and** Hermes's buffer/session/reset quirks. Proven pattern: architect/main already run `claude-cli` on CT175.
 
 **Decisions:** name `omega`; git key/identity `github-omega` (separate creds, least-privilege); **new** Matrix identity for omega (not reused from Hermes); **port CT175's tuned config** (contextPruning, params, memorySearch, behavior conventions) — adapt host-specific bits only; **keep Hermes installed-but-disabled as rollback — do NOT uninstall.**
 
@@ -92,4 +92,35 @@ Omega is installed, configured, durable, and isolated on the Mac. Probes `usable
 - `meta.lastTouchedAt`: raw file overwrites (`cat >`) trip the gateway's auto-restore-from-last-good — use `openclaw config set`.
 - CT175 `anthropic:claude-cli` OAuth expiry is non-breaking (static durable token leads); refresh via `openclaw models auth login --provider anthropic --method cli` when convenient.
 
-**Outstanding before Phase 2:** provision omega's `gpt-5.5` codex-OAuth fallback (device-code login).
+## Phase 2 — COMPLETE (2026-06-30)
+
+Omega is wired into the Drafting Table Matrix room as a new, E2EE-capable, mention-gated agent. Hermes remains live; omega is additive and not yet the read-write executor.
+
+**Matrix account & room**
+
+- Account `@omega:matrix.ryankennedy.dev`, device `omega`; token stored off-repo in `~/.homelab-secrets/matrix-omega-access-token.txt` (`0600`).
+- `whoami` verified `user_id=@omega:matrix.ryankennedy.dev`, `device_id=omega`.
+- Joined room `!FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev`; current joined members include `@ryan`, `@openclaw`, `@architect`, `@hermes`, and `@omega`.
+
+**OpenClaw channel config**
+
+- Matrix plugin installed and running; `openclaw config validate` passes.
+- `channels.matrix` is enabled with `defaultAccount: omega`, `homeserver: https://matrix.ryankennedy.dev`, `encryption: true`, `contextVisibility: all`, `historyLimit: 50`, `autoJoin: off`, and `allowBots: mentions`.
+- Drafting Table room config: `account: omega`, `requireMention: true`, `allowBots: mentions`, `botLoopProtection.enabled: true`.
+- Channel health verified via `openclaw channels status --json`: Matrix running, account `omega` connected, health `healthy`.
+
+**E2EE & verification**
+
+- E2EE bootstrap output stored off-repo in `~/.homelab-secrets/matrix-omega-e2ee-bootstrap.json` (`0600`).
+- `openclaw matrix verify status --account omega --json` reports `verified: true`, `localVerified: true`, `crossSigningVerified: true`, `signedByOwner: true`, server device known, key backup trusted, backup version `1`.
+
+**Live gates**
+
+- **Mention / bot handoff:** `@openclaw` sent a full-MXID pill for `@omega:matrix.ryankennedy.dev`; omega reacted, then replied as encrypted event `$frA4D30M5MJMpMJKVX37s3FrUt7gRLKga4gQCpDNA5g`.
+- **Brake:** `@openclaw` sent an unmentioned control message; 20-second watch showed no omega reaction or reply.
+
+**Known caveat**
+
+- Reading older Hermes-encrypted messages through omega currently shows Megolm "sender's device has not sent us the keys" for some Hermes events. This does **not** block omega's own Matrix send/receive path, but it means historical Hermes ciphertext is not a Phase-2 proof source. Future validation should use fresh encrypted client messages or bot handoffs after all devices have shared room keys.
+
+**Outstanding before Phase 3:** provision omega's `gpt-5.5` codex-OAuth fallback (device-code login), then add executor credentials/capabilities (`github-omega`, repo clone, SSH/infra access) under manual approvals.
