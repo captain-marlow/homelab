@@ -20,6 +20,17 @@ via the embedded runner) — `@architect` now answers live through the gateway t
 
 ---
 
+## Repo write topology & division of labor
+
+One rule, learned the hard way (2026-07-01): **omega is the sole git writer.**
+
+- **Roles:** `@architect` (CT175) = read-only planner. `@openclaw`/main (CT175) = cluster-side **system** executor — config, secrets, services on CT175/the cluster. `@omega` (Mac) = Mac-side executor **and sole git writer / maintainer**. `@ryan` = gate.
+- **The CT175 clone is repo read-only.** It uses the `github-homelab` **read-only** deploy key and **cannot push**. `@architect` and `@openclaw` share this one clone (`~/.openclaw/agents/architect/workspace/homelab`) as a pull-only mirror.
+- **All repo writes route to omega** (`github-omega` write key, commit identity `Omega <omega@ryankennedy.dev>`). Board updates, docs, code — everything. **Never ask a CT175 agent to commit or push:** its local commits can't reach origin and orphan silently (this bit us on 2026-07-01 — `e87bf4b` and `9d38686` both orphaned this way; omega had to re-apply and push).
+- **Writers pull `--ff-only` before committing;** ff-only sync everywhere, non-ff halts. A stale-base commit is what caused the orphaning.
+
+---
+
 ## Working protocol (approved 2026-06-27)
 
 The agreed human-gated planner↔executor loop for multi-step tasks.
