@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line;** reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule, but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-07-01 (D012 Phase 4 cutover — omega is canonical executor, Hermes dormant)
+**Last updated:** 2026-07-01 (D012 Phase 5 complete — D012 closed, omega identity versioned, Hermes superseded in docs)
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -10,11 +10,10 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** D012, D011
+**Order — edit this line to reorder:** D011
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
-| D012 | **Omega — Mac OpenClaw executor (Hermes replacement)** — OpenClaw agent on the Mac via `claude-cli` runtime on Ryan's Claude subscription; replaces OpenAI-locked Hermes, gains native buffer/session/reset. Phased, gated; Hermes kept dormant-not-removed as rollback. | openclaw/matrix | active | none | **Phase 4 cutover done (2026-07-01).** Omega is the canonical Mac-side executor. Hermes gateway dormant (`launchctl bootout user/501/ai.hermes.gateway`; plist intact). Rollback: `launchctl bootstrap user/501 ~/Library/LaunchAgents/ai.hermes.gateway.plist`. Phase 5 remaining: mark Hermes superseded in docs, version omega's identity doc, close D012. See `docs/openclaw/omega-mac-agent.md`. |
 | D011 | Matrix multi-agent routing/gating pass — room-ping behavior, Hermes verbosity, and history-window tuning | matrix/routing | queued | none | **DECIDED 2026-06-28, ready to execute as one Hermes-config pass:** (a) **Room-ping → broadcast to all three.** Architect + OC already fire on a room ping; **add a room-ping trigger to Hermes** to match. Caveat: Hermes will reply context-blind until it has a buffer (see D010). (b) **Quiet Hermes verbosity** — locate + apply the tool-call-streaming setting. (c) Bump OC/architect `historyLimit` **30 → 50**. (d) `textMentioned` tightening: **SKIP** (unconfirmed path; not worth a fragile source patch). OC "gate-jumping" concern: **DROPPED** per Ryan. Root cause for the record: the "OC responding unexpectedly" issue was room-pings in architect's own messages + read-on-trigger receipts — no exotic bug. |
 | P011 | Hermes follow-ups & autonomy-scoping — (1) stop/KeepAlive trap documented + corrected (`8cedb28`) ✅; (2) stale-stream timeout: fix identified (`providers.<id>.stale_timeout_seconds ≈ 120–180s` in `config.yaml`), gate config edit when Mac-side ✅; (3) autonomy/approval audit: confirmed safe (`approvals.mode=manual`, `cron_mode=deny`, `destructive_slash_confirm=true`); `--yolo` = one-shot tasks only, never the gateway ✅; (4) division of labor: **Hermes = Proxmox / infra / git steady-state; OpenClaw = router + cross-node recovery executor** — when Hermes is down, OpenClaw SSHes into the Mac to diagnose/recover (proven 2026-06-26: pushed `26219ec`/`8cedb28` via Mac SSH). Scope grows by recovery need, not domain claim. Recovery access is policy-bounded (convention not hard wall, consistent with mention-gating model). CT175→Mac SSH path is Hermes-independent (own key, own route) ✅. **P011 COMPLETE.** | hermes | done | P006 done | `docs/hermes/hermes-mac.md` |
 
@@ -54,6 +53,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | P008 | Documentation sort pass — bring all docs to `STYLE.md` (markdownlint structure, Vale terminology, em-dash rewrites, Ollama knowledge-base stub). | docs | done | `docs/meta` |
 | P009 | Architect read-only web access (`web_fetch`, keyless HTTP GET — verified live) + full-MXID handoff convention in its SOUL | OpenClaw/matrix | done | `docs/openclaw/architect-agent.md` |
 | P012 | Per-agent model chain split — `main` → `anthropic/claude-sonnet-4-6` → `openai/gpt-5.5`; `architect` → `anthropic/claude-opus-4-8` → `openai/gpt-5.5`; `agents.defaults.model` documented as inherited base only, not main's effective chain; Gemini confirmed out of all text chains; `MEMORY.md` + `STATE.md` + failover-reference doc updated. | OpenClaw | done | `STATE.md`, `MEMORY.md`, `docs/openclaw/openclaw-failover-reference-2026-06-21.md` |
+| D012 | Omega — Mac-side OpenClaw executor (Hermes replacement) — phases 0–5 complete. Omega is the canonical Mac-side executor; Hermes dormant (rollback: `launchctl bootstrap user/501 ~/Library/LaunchAgents/ai.hermes.gateway.plist`). | openclaw/matrix | done | `docs/openclaw/omega-mac-agent.md` |
 
 ---
 

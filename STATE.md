@@ -64,7 +64,7 @@ OpenClaw's `agents.defaults.memorySearch` was repointed `provider: openai → ol
 
 ---
 
-## Hermes (Mac-side read-write / git-push executor) — P006 COMPLETE
+## Hermes (Mac-side read-write / git-push executor) — P006 COMPLETE — superseded by omega (D012 Phase 4, 2026-07-01), gateway dormant
 
 **Status: DONE (2026-06-24/25) — steps a (standalone) + b (repo integration) + c (Matrix loop) all
 verified.** Hermes (Nous Research agent) on the Mac is the institutional version of the
@@ -107,7 +107,7 @@ read-write/git-push executor role Claude Code plays manually now — a hard depe
 
 ---
 
-## Omega (Mac OpenClaw executor replacement) — D012 ACTIVE
+## Omega (Mac-side executor) — D012 COMPLETE
 
 **Status: Phase 4 cutover executed (2026-07-01).** Omega is now the canonical Mac-side executor. Hermes is dormant (LaunchAgent unloaded, plist at `~/Library/LaunchAgents/ai.hermes.gateway.plist`). Rollback: `launchctl bootstrap user/501 ~/Library/LaunchAgents/ai.hermes.gateway.plist`. The `ai.openclaw.homelab-sync-hermes` sync poller remains running so Hermes's clone stays fresh even while the gateway is dormant.
 
@@ -118,7 +118,8 @@ read-write/git-push executor role Claude Code plays manually now — a hard depe
 - **Phase 3 Step 3 (git write path) complete (2026-07-01):** `github-omega` deploy key registered write-enabled (Ryan); omega clone + commit identity `Omega <omega@ryankennedy.dev>`; omega proved its own commit+push live (commits `1ab1f81`, `8b0fe75`). The original post-commit hook covered only CT175/architect (1 of 3 clones) and dropped syncs silently — diagnosed broken during audit (2026-07-01); corrected by the poller redesign below.
 - **Repo sync redesign complete (2026-07-01):** Replaced fire-and-forget hook fan-out with a pull-only poller model. Writer hooks stripped to `git push origin HEAD` only (no SSH fan-out). Each consumer clone self-polls: 60s systemd user timer on CT175 (architect clone), 60s launchd agents on Mac (omega clone + Ryan/Hermes clone). ff-only everywhere; non-ff halts and alerts. Units versioned in-repo under `config/sync/`. Live gate: push from omega → all three clones converged within one cycle; push from Hermes → same. Three-clone coverage confirmed: CT175/architect, Mac/omega, Mac/Hermes.
 - **Phase 3 Steps 4–5 complete (2026-07-01):** Proxmox SSH + `pct`/`pvesh` reach proven on both pve01 (root) and CT175 (openclaw) via `omega_homelab_ed25519`; `pct snapshot` blocked cluster-wide by bind mounts (LXC knowledge base doc filed). CT175 authorization doc-confirmed. Snapshot gate on CT175 (no bind mounts): create → verify → delete → verify gone, all via omega's own key. Ansible: `ansible all -i …hosts.ini -m ping` → pve01 SUCCESS (pong, Python 3.13) — full inventory coverage. Full 7/7 parity with Hermes confirmed by architect.
-- **Phase 4 cutover: DONE (2026-07-01).** Omega is the canonical Mac-side executor. Hermes is dormant — `launchctl bootout user/501/ai.hermes.gateway` executed; plist untouched at `~/Library/LaunchAgents/ai.hermes.gateway.plist`. Rollback: `launchctl bootstrap user/501 ~/Library/LaunchAgents/ai.hermes.gateway.plist`. The `ai.openclaw.homelab-sync-hermes` sync poller keeps running (Hermes clone stays fresh). Phase 5 remaining: mark Hermes superseded in docs, version omega's identity, remove "D012 ACTIVE" tracking.
+- **Phase 4 cutover: DONE (2026-07-01).** Omega is the canonical Mac-side executor. Hermes is dormant — `launchctl bootout user/501/ai.hermes.gateway` executed; plist untouched at `~/Library/LaunchAgents/ai.hermes.gateway.plist`. Rollback: `launchctl bootstrap user/501 ~/Library/LaunchAgents/ai.hermes.gateway.plist`. The `ai.openclaw.homelab-sync-hermes` sync poller keeps running (Hermes clone stays fresh).
+- **Phase 5 — Docs cleanup: DONE (2026-07-01).** Hermes section marked superseded (section body preserved — rollback context stays useful). Omega identity versioned in-repo at `agents/omega/` (IDENTITY/SOUL/USER/README, symlinked into workspace root). D012 closed and moved to completed.
 
 ---
 
