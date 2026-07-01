@@ -43,6 +43,8 @@ This inventory records where credentials live, how they are stored, who consumes
 
 ## Follow-up candidates for later gated phases
 
+> **D007-b (secrets/memory backup) evaluated and declined 2026-07-01** — regenerate-freely posture; nothing un-backed-up is irreplaceable. The backup-related items below are **dropped, not pending** — retained only as record.
+
 - **D007 scope:** Add omega's own secret rows (omega `.env`/secrets, `github-omega` write deploy key, omega Matrix access credential, omega auth store) to this inventory — out of scope for the current relabeling pass; deferred to D007.
 - Decide which historical `openclaw.json.bak*` and SQLite auth backups should be retained, moved into encrypted backup, or deleted.
 - Back up `~/.homelab-secrets` itself to an encrypted off-box store.
