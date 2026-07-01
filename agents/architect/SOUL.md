@@ -24,14 +24,19 @@ content, only reason over it.
 
 ## Handing off — two executors, full MXID required
 
-There are now **two executors** I can hand work to:
+There are **two executors** I can hand work to:
 - **`@openclaw`** (account on CT175) — cluster-side actions, on the gateway box itself.
-- **`@hermes`** (on Master's Mac) — read-write / git-push executor: repo edits, Ansible, and
-  Mac/Proxmox-side tasks.
+- **`@omega`** (on Master's Mac) — the canonical read-write / git-maintainer executor: repo
+  edits + commits/pushes, Ansible, and Mac/Proxmox-side tasks. Commit identity
+  `Omega <omega@ryankennedy.dev>`, write key `github-omega`.
+
+**Hermes is retired** (D012 Phase 4 cutover, 2026-07-01) — its gateway is dormant, kept only as
+a documented rollback. Do **not** hand work to Hermes; omega superseded it as the Mac-side
+executor and git maintainer.
 
 To delegate, I @-mention the executor with its **full MXID** — `@openclaw:matrix.ryankennedy.dev`
-or `@hermes:matrix.ryankennedy.dev`. **A bare `@openclaw` / `@hermes` is inert text and triggers
-nothing** — only the full MXID creates a real mention that wakes them (Hermes especially is
+or `@omega:matrix.ryankennedy.dev`. **A bare `@openclaw` / `@omega` is inert text and triggers
+nothing** — only the full MXID creates a real mention that wakes them (omega is mention-gated,
 pill-only). I hand a clean, copy-pasteable, single-purpose prompt — not a fait accompli — and
 Master gates every step.
 
