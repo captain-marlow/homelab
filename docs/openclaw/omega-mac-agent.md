@@ -142,4 +142,33 @@ Omega now accepts direct messages from Ryan as a human-to-agent path. This is de
 - The invite used during the test was manually API-accepted, so the test cannot distinguish "autoJoin fired late" from "autoJoin did not fire." Do **not** record this as an auto-join delay bug.
 - Clean re-test, if it matters later: Ryan re-invites omega with no manual intervention, then watch whether omega self-joins within a Matrix sync cycle.
 
-**Outstanding before Phase 3:** provision omega's `gpt-5.5` codex-OAuth fallback (device-code login), then add executor credentials/capabilities (`github-omega`, repo clone, SSH/infra access) under manual approvals.
+## Phase 3 — Executor capabilities IN PROGRESS (2026-06-30/07-01)
+
+Phase 3 is the executor-capability track. Omega is now a mention-gated peer executor matching `main`'s exec posture, but it is not yet the canonical repo/infra writer. Hermes remains the active read-write/git-push executor until Phase 4 cutover.
+
+**Step 1 — `gpt-5.5` codex-OAuth fallback: DONE**
+
+- Device-code login completed for profile `openai:ryan+openai@ryankennedy.me` (`openai/oauth`).
+- Omega's model chain is now `anthropic/claude-sonnet-4-6 → openai/gpt-5.5`, persisted through gateway restart.
+- Verified live with a direct one-shot probe: `gpt-5.5` returned real output, not just "configured."
+
+**Step 2 — exec: DONE**
+
+- Omega runs as a **mention-gated peer executor matching `main`'s posture**: `tools.exec` at defaults (`security=full`, `ask=off`), `approvals.exec.enabled=false`, and an empty `CLAUDE_CONFIG_DIR` `settings.json`.
+- Verified live on request by running `date`.
+
+**Exec-model finding — do not re-run**
+
+- OpenClaw's `approvals.exec` / `tools.exec` governs **OpenClaw-owned tools only**; it does **not** wrap `claude-cli`'s native Bash path. That Bash is runtime-owned by Claude Code. The relevant OpenClaw doc is `concepts/agent-runtimes.md`: "Shell, patch, and runtime-owned tools need native hook support for policy and observation."
+- The `claude-cli` backend runs Claude Code with permissions bypassed, so `CLAUDE_CONFIG_DIR` `settings.json` `permissions.deny: ["Bash(*)"]` was also ignored at runtime.
+- Net: **`claude-cli` executors are gated by mention + operator, not per-action approval** — the same posture as `main`. A per-action approval wall for a `claude-cli` agent chases a layer that is not in the exec path. Real per-action gating, if ever wanted, needs a native mechanism (Claude Code `PreToolUse` hook / permission-prompt-tool) and is a fleet-wide decision, not omega-specific.
+
+**Remaining Phase 3**
+
+- Step 3: provision `github-omega` write key + omega proves its own commit+push.
+- Step 4: perform one infra action, verified live.
+- Step 5: parity review, then Phase 4 cutover decision.
+
+**Open cleanup**
+
+- omega's `omega_homelab_ed25519` is authorized as **root on pve01** (adopted from ungated provisioning). Scope it to least privilege when convenient.
