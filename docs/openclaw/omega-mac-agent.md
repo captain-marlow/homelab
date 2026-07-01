@@ -142,9 +142,9 @@ Omega now accepts direct messages from Ryan as a human-to-agent path. This is de
 - The invite used during the test was manually API-accepted, so the test cannot distinguish "autoJoin fired late" from "autoJoin did not fire." Do **not** record this as an auto-join delay bug.
 - Clean re-test, if it matters later: Ryan re-invites omega with no manual intervention, then watch whether omega self-joins within a Matrix sync cycle.
 
-## Phase 3 — Executor capabilities IN PROGRESS (2026-06-30/07-01)
+## Phase 3 — Executor capabilities COMPLETE (2026-06-30/07-01)
 
-Phase 3 is the executor-capability track. Omega is now a mention-gated peer executor matching `main`'s exec posture, but it is not yet the canonical repo/infra writer. Hermes remains the active read-write/git-push executor until Phase 4 cutover.
+Phase 3 is the executor-capability track. All steps complete; Phase 4 cutover executed.
 
 **Step 1 — `gpt-5.5` codex-OAuth fallback: DONE**
 
@@ -168,10 +168,37 @@ Phase 3 is the executor-capability track. Omega is now a mention-gated peer exec
 - Omega proved its own commit+push live — commits `1ab1f81` (git gate) and `8b0fe75` (auto-pull verify), both authored+committed by omega.
 - Post-commit auto-pull hook verified firing to CT175 (per `8b0fe75`); architect's clone also auto-advanced during the session.
 
-**Remaining Phase 3**
-- Step 4: one infra action, verified live. `omega_homelab_ed25519` exists and is authorized on pve01 (as root — see cleanup); CT175 authorization not yet doc-confirmed. Prove reach with a real action and confirm both hosts.
-- Step 5: parity review, then Phase 4 cutover decision.
+**Step 4 — Proxmox SSH + pct/pvesh infra action: DONE (2026-07-01)**
+- `omega_homelab_ed25519` reach confirmed on pve01 (root, `pvesh get /version` → Proxmox 9.1.4) and CT175 (`hostname` → `openclaw`). CT175 authorization doc-confirmed.
+- Snapshot gate: CT150 (servarr) has bind mounts — `pct snapshot` refused cluster-wide (all Docker-host CTs). CT175 (no bind mounts, ZFS): snapshot create → verify → delete → verify gone, all clean.
+- `pct snapshot` refusal finding filed: `docs/proxmox/knowledge-base/lxc-snapshots-bind-mounts.md`. Correct backup path: vzdump for rootfs + ZFS dataset snapshots of host bind sources.
+
+**Step 5 — Parity review: DONE (2026-07-01)**
+
+Full 7/7 parity with Hermes confirmed by architect (live-verified, not self-reported):
+
+| Capability | Status |
+|------------|--------|
+| Auth isolation | ✅ own `CLAUDE_CONFIG_DIR` + dedicated Max setup-token |
+| Model chain | ✅ `sonnet-4-6 → gpt-5.5`, verified live |
+| Matrix bot | ✅ `@omega`, E2EE/cross-signing/backup, mention-gating, DM path |
+| Exec posture | ✅ mention-gated peer matching `main` |
+| Git read-write | ✅ `github-omega` key, `Omega <omega@ryankennedy.dev>` identity, commit+push proven |
+| Proxmox SSH + pct/pvesh | ✅ pve01 (root) + CT175 (openclaw) via `omega_homelab_ed25519` |
+| Ansible | ✅ `ansible all -m ping` → pve01 SUCCESS (full inventory coverage) |
+
+## Phase 4 — Hermes cutover: DONE (2026-07-01)
+
+Omega is the canonical Mac-side executor. Hermes gateway is **dormant** — LaunchAgent unloaded, plist intact.
+
+**Cutover action:** `launchctl bootout user/501/ai.hermes.gateway`
+
+**Rollback (instant):** `launchctl bootstrap user/501 ~/Library/LaunchAgents/ai.hermes.gateway.plist`
+
+**What stays running:** `ai.openclaw.homelab-sync-hermes` (poller for `~/Developer/homelab-hermes` clone) — Hermes's clone stays fresh even with the gateway dormant. Hermes can be reactivated as a hot-standby.
+
+**Phase 5 remaining:** mark Hermes superseded in docs, version omega's identity, close D012.
 
 **Open cleanup**
 
-- omega's `omega_homelab_ed25519` is authorized as **root on pve01** (adopted from ungated provisioning). Scope it to least privilege when convenient.
+- omega's `omega_homelab_ed25519` is authorized as **root on pve01** (adopted from ungated provisioning). Scope it to least privilege when convenient — this is a fleet-wide Proxmox access decision, not omega-specific (Hermes also hits pve01 as root).
