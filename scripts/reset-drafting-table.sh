@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # reset-drafting-table.sh
 #
-# Resets both agent sessions for the "Drafting Table" Matrix channel
-# (room !FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev), giving both openclaw
-# and architect a clean slate on next message.
+# Resets the main and architect agent sessions for the "Drafting Table" Matrix
+# channel (room !FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev), giving both a
+# clean slate on next message. Runs on CT175 (where main and architect live).
+# For omega (Mac-side), use scripts/reset-drafting-table-omega.sh on the Mac.
 #
 # HOW IT WORKS
 #   OpenClaw stores session history in per-agent .jsonl transcript files.
@@ -13,10 +14,12 @@
 #   No restart is needed; the gateway must be running.
 #
 # SELF-BOUNCE WARNING
-#   DO NOT run this from inside the openclaw or architect sessions (e.g. via
-#   tool calls). Run it directly from a shell on CT175 (as the openclaw user
-#   or root), or via SSH, BEFORE sending the next message to either agent.
+#   DO NOT run this from inside the main or architect sessions (e.g. via tool
+#   calls). Run it directly from a shell on CT175 (as the openclaw user or
+#   root), or via SSH, BEFORE sending the next message to either agent.
 #   Running it while an agent turn is in-flight may corrupt state.
+#   For omega: same rule applies — do not run reset-drafting-table-omega.sh
+#   from inside an omega turn.
 #
 # SESSION KEYS RESET
 #   main agent:     agent:main:matrix:channel:!FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev

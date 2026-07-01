@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line;** reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule, but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-07-01 (D012 Phase 5 complete — D012 closed, omega identity versioned, Hermes superseded in docs)
+**Last updated:** 2026-07-01 (D011 deferred; sync robustness → ideas.md; vzdump KB confirmed; omega reset script added)
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -10,11 +10,10 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 ## Queue (active + todo)
 
-**Order — edit this line to reorder:** D011
+**Order — edit this line to reorder:** (none active)
 
 | ID | Project | Subject | Status | Depends on | Detail |
 |----|---------|---------|--------|------------|--------|
-| D011 | Matrix multi-agent routing/gating pass — room-ping behavior, Hermes verbosity, and history-window tuning | matrix/routing | queued | none | **DECIDED 2026-06-28, ready to execute as one Hermes-config pass:** (a) **Room-ping → broadcast to all three.** Architect + OC already fire on a room ping; **add a room-ping trigger to Hermes** to match. Caveat: Hermes will reply context-blind until it has a buffer (see D010). (b) **Quiet Hermes verbosity** — locate + apply the tool-call-streaming setting. (c) Bump OC/architect `historyLimit` **30 → 50**. (d) `textMentioned` tightening: **SKIP** (unconfirmed path; not worth a fragile source patch). OC "gate-jumping" concern: **DROPPED** per Ryan. Root cause for the record: the "OC responding unexpectedly" issue was room-pings in architect's own messages + read-on-trigger receipts — no exotic bug. |
 | P011 | Hermes follow-ups & autonomy-scoping — (1) stop/KeepAlive trap documented + corrected (`8cedb28`) ✅; (2) stale-stream timeout: fix identified (`providers.<id>.stale_timeout_seconds ≈ 120–180s` in `config.yaml`), gate config edit when Mac-side ✅; (3) autonomy/approval audit: confirmed safe (`approvals.mode=manual`, `cron_mode=deny`, `destructive_slash_confirm=true`); `--yolo` = one-shot tasks only, never the gateway ✅; (4) division of labor: **Hermes = Proxmox / infra / git steady-state; OpenClaw = router + cross-node recovery executor** — when Hermes is down, OpenClaw SSHes into the Mac to diagnose/recover (proven 2026-06-26: pushed `26219ec`/`8cedb28` via Mac SSH). Scope grows by recovery need, not domain claim. Recovery access is policy-bounded (convention not hard wall, consistent with mention-gating model). CT175→Mac SSH path is Hermes-independent (own key, own route) ✅. **P011 COMPLETE.** | hermes | done | P006 done | `docs/hermes/hermes-mac.md` |
 
 ---
@@ -33,6 +32,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | D008 | Local LLM on Vega 64 — build a Vulkan-backed GPU local-generation tier using Vega 64 (8 GB VRAM), Qwen3-8B Q4_K_M as the primary model, quantized KV cache, and context sized to preserve VRAM headroom. This is the GPU evolution of the CPU-only Ollama tier and the performance enabler for a future D005 resume. | ollama/proxmox | deferred | Open scoping question: CT172 passthrough vs. separate/new machine. See `docs/ollama/vega64-gpu-tier.md`. |
 | D009 | Proxmox Docker management — GitOps architecture design (Komodo + Ansible two-layer model, pull/GitOps, state-var Periphery, ZFS-backed rebuild safety). Design approved 2026-06-28. Implementation gated on D007 (secrets inventory) for rebuild-safety. | Proxmox | deferred | D007 prerequisite for disposable-LXC guarantee | `docs/proxmox/docker-gitops-architecture.md` |
 | D010 | Hermes Matrix history-backfill (passive room buffer) — passive room context analog | hermes/matrix | deferred | **DECIDED 2026-06-28: option (c) — do NOT build the passive-room buffer now.** Hermes stays addressed-only; pill it with context when needed. Keep **(b) upstream-PR to Nous** noted as the preferred future path over a local fork. If ever built, size the buffer to **50** to match the others. |
+| D011 | Matrix multi-agent routing/gating pass — room-ping behavior, Hermes verbosity, and history-window tuning | matrix/routing | deferred | **Deprioritized 2026-07-01 — multi-agent routing working fine as-is; revisit only if problems recur.** Prior decision (2026-06-28) record: (a) room-ping → broadcast to all three; (b) quiet Hermes verbosity; (c) bump historyLimit 30→50; (d) `textMentioned` tightening SKIP. |
 
 ---
 

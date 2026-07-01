@@ -14,7 +14,7 @@ CT175 (openclaw) has no bind mounts and is snapshottable normally.
 
 Don't design around `pct snapshot` for these containers. The actual app state lives in the bind-mounted datasets, not the container image. Use:
 
-1. **vzdump** for the rootfs (container image, config, installed packages) — `--mode snapshot` behavior on bind-mount CTs is unverified (it may skip bind mounts rather than fail; confirm with a live test before depending on it)
+1. **vzdump** for the rootfs (container image, config, installed packages) — **verified 2026-07-01 (omega, CT150):** `vzdump --mode snapshot` silently downgrades to `--mode stop` on bind-mount CTs; the CT is briefly stopped, rootfs is backed up, bind-mount paths are excluded with "not a volume" warnings. Exit 0 — the job "succeeds" but bind-mounted data is NOT in the archive. Consequence: `vzdump` alone leaves your app data (configs, media) unprotected.
 2. **ZFS dataset snapshots on the host** for the bind-mounted data sources (`flash/docker/*`, `tank/media`, etc.) — this captures what matters
 
 ```bash

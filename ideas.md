@@ -2,9 +2,11 @@
 
 *Loose pool of not-yet-projects. No order, no status discipline. When something firms up into a concrete next step, promote it to `projects.md` and delete it here.*
 
-**Last updated:** 2026-06-27
+**Last updated:** 2026-07-01
 
 ---
+
+- **Sync robustness (poller hardening + pull-before-act)** — two related improvements to the ff-only poller model (systemd on CT175, launchd on Mac): (a) **alert on halt** — a stuck poller currently fails silently; it should fire an alert (Matrix ping or log entry) when it halts, and its error message should distinguish between an untracked-file collision and a true non-ff situation (tonight's phantom-SHA scare had a misleading error); (b) **pull-before-act** — each agent should ff-pull the repo at the moment it starts a task, so it's working from current state at point-of-use rather than whatever the 60s timer happened to leave. Belt-and-suspenders on the sync; neither is urgent but both prevent a class of confusing incidents. Non-urgent; defer until there's a concrete pain point or the backup/infra-automation work makes it load-bearing.
 
 - **Public / friends-and-family Matrix** — someday-goal, not a priority. Would mean flipping federation on (currently off; off-now/on-later is the clean direction).
 - **Tailscale** — optional layer on top of the existing WireGuard remote access. Not a dependency for anything current.
