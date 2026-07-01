@@ -156,14 +156,15 @@ the bots are only ever in private, controlled rooms.
 > triggered** by a mention. This is not continuous monitoring — bots are idle between triggers and
 > only see the rolling window delivered when their mention fires. Practical consequence: an un-pilled
 > message sent while a bot is idle may fall outside its delivery window and simply not be seen.
-> Architect and main each get this buffered window when triggered; Hermes only receives content it
-> was directly pilled in (no buffer for un-addressed messages). This is why mid-session relays were
-> sometimes needed: a room message without a pill to the receiving bot is not guaranteed to land in
-> its context window.
+> Architect and main each get this buffered window when triggered; **Hermes** (now retired) only
+> received content it was directly pilled in (no buffer for un-addressed messages) — this
+> distinction no longer applies to the Mac executor since omega is OpenClaw-based and uses the same
+> buffered window model. This is why mid-session relays were sometimes needed with Hermes: a room
+> message without a pill to the receiving bot is not guaranteed to land in its context window.
 
-Hermes now uses room-scoped Matrix sessions for addressed messages, but still lacks OpenClaw-style
-passive room buffering; see `docs/hermes/hermes-mac.md` for the approval/session model and deferred
-history-backfill enhancement.
+omega (the replacement Mac executor) uses the same OpenClaw session model as `main` and `architect`
+— room-scoped sessions with the same buffered delivery window. Hermes was the outlier here;
+omega is not. See `docs/openclaw/omega-mac-agent.md` for omega's session model.
 
 ### Bots CAN trigger each other — but only via the full MXID
 
@@ -251,21 +252,21 @@ API with each bot's token (one-time per room). Watch for:
   ambiguously. **Live test (2026-06-25): the OpenClaw bots did NOT reset in the Drafting Table.**
   And asking the architect "did you reset?" is worthless — a real reset wipes the proof, and it may
   even deny it. Use the runtime instead:
-  - **Hermes:** clean CLI — `hermes sessions list` → `hermes sessions delete <id>` (or
-    `hermes sessions prune`). Run when Hermes is idle, not mid-turn.
-  - **OpenClaw (architect / main):** **no clean targeted-reset CLI or RPC** — `openclaw gateway
+  - **Hermes (retired):** clean CLI — `hermes sessions list` → `hermes sessions delete <id>` (or
+    `hermes sessions prune`). Documented for rollback reference only; Hermes gateway is dormant.
+  - **OpenClaw (architect / main / omega):** **no clean targeted-reset CLI or RPC** — `openclaw gateway
     call` exposes no callable `session.reset` (it's only a config-policy key). But they
     **auto-prune** context (20-min TTL) and re-read the repo each session, so **between projects
     they effectively self-reset** — an explicit reset is rarely needed. Hard reset (e.g. to force a
     SOUL reload after editing it) = clear that room's entry from
-    `agents/<id>/sessions/sessions.json` (stop gateway → edit → restart).
+    `agents/<id>/sessions/sessions.json` (stop gateway → edit → restart). omega uses this same
+    path.
   - **`/reset` pilled to target agent (observed 2026-06-28):** Single-slash `/reset` **pilled to
     the specific agent** does start a fresh CLI session for it. The "no response" symptom seen
     earlier was a **timing gap** — the mention arrived while the new session was still spinning up,
     not a failure of the mechanism. Working method: pill the target agent + `/reset`, then **wait a
-    beat before re-mentioning** (give the fresh session time to become ready). Not tested for
-    Hermes (see quirk in Follow-ups). Caution: Hermes may intercept the command even when the pill
-    targets another agent.
+    beat before re-mentioning** (give the fresh session time to become ready). Applies to omega
+    (OpenClaw-based) the same as `main`/`architect`.
   - **DMs:** `//reset` works in a 1:1 DM (Element escapes to a literal `/reset`; one bot consumes
     it) — but a **DM session is separate from the room session**, so a DM reset does *not* reset
     the Drafting Table session.
@@ -295,5 +296,5 @@ API with each bot's token (one-time per room). Watch for:
 - **Hermes slash-command handler not mention-scoped (observed 2026-06-28):** Ryan pilled `/reset`
   to `@openclaw`; Hermes (not openclaw) popped a "Confirm /new" prompt. Hermes's command handler
   appears to fire on slash-commands in the room regardless of whether the pill addressed it.
-  Separate from the message gate (which is working). Needs investigation: Hermes's command path
-  should check `was_mentioned` before acting, or otherwise scope itself to addressed commands only.
+  Separate from the message gate (which is working). *(Hermes retired 2026-07-01; behavior moot
+  under omega, which is OpenClaw-based and does not share this command-handler quirk.)*

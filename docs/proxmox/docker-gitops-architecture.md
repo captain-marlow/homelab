@@ -7,7 +7,7 @@
 
 ## Source of Truth
 
-The **GitHub repo** is canonical. It lives on GitHub, on editing machines (Mac; Hermes when up), and Komodo Core keeps its own working copy. It does **not** live on the LXCs. The architect clone is **read-only (pull-only)** — not an editor.
+The **GitHub repo** is canonical. It lives on GitHub, on editing machines (Mac; omega when up), and Komodo Core keeps its own working copy. It does **not** live on the LXCs. The architect clone is **read-only (pull-only)** — not an editor.
 
 ---
 
