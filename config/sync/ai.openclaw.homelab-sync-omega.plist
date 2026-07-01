@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>ai.openclaw.homelab-sync-omega</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>-c</string>
+    <string>git -C /Users/ryan/.openclaw/agents/omega/workspace/homelab fetch origin &amp;&amp; git -C /Users/ryan/.openclaw/agents/omega/workspace/homelab merge --ff-only origin/main || (echo "[homelab-sync-omega] non-ff detected, halting" &gt;&amp;2; exit 1)</string>
+  </array>
+  <key>StartInterval</key>
+  <integer>60</integer>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardErrorPath</key>
+  <string>/tmp/homelab-sync-omega.log</string>
+</dict>
+</plist>

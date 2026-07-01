@@ -1,0 +1,7 @@
+[Unit]
+Description=Homelab repo ff-only sync
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'git -C /home/openclaw/.openclaw/agents/architect/workspace/homelab fetch origin && git -C /home/openclaw/.openclaw/agents/architect/workspace/homelab merge --ff-only origin/main || (echo "[homelab-sync] non-ff detected, halting" >&2; exit 1)'
