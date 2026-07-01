@@ -163,10 +163,13 @@ Phase 3 is the executor-capability track. Omega is now a mention-gated peer exec
 - The `claude-cli` backend runs Claude Code with permissions bypassed, so `CLAUDE_CONFIG_DIR` `settings.json` `permissions.deny: ["Bash(*)"]` was also ignored at runtime.
 - Net: **`claude-cli` executors are gated by mention + operator, not per-action approval** — the same posture as `main`. A per-action approval wall for a `claude-cli` agent chases a layer that is not in the exec path. Real per-action gating, if ever wanted, needs a native mechanism (Claude Code `PreToolUse` hook / permission-prompt-tool) and is a fleet-wide decision, not omega-specific.
 
-**Remaining Phase 3**
+**Step 3 — `github-omega` write path: DONE (2026-07-01)**
+- Deploy key registered write-enabled on the repo (Ryan); omega has its own clone + identity `Omega <omega@ryankennedy.dev>`.
+- Omega proved its own commit+push live — commits `1ab1f81` (git gate) and `8b0fe75` (auto-pull verify), both authored+committed by omega.
+- Post-commit auto-pull hook verified firing to CT175 (per `8b0fe75`); architect's clone also auto-advanced during the session.
 
-- Step 3: provision `github-omega` write key + omega proves its own commit+push.
-- Step 4: perform one infra action, verified live.
+**Remaining Phase 3**
+- Step 4: one infra action, verified live. `omega_homelab_ed25519` exists and is authorized on pve01 (as root — see cleanup); CT175 authorization not yet doc-confirmed. Prove reach with a real action and confirm both hosts.
 - Step 5: parity review, then Phase 4 cutover decision.
 
 **Open cleanup**
