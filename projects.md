@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line;** reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule, but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-07-01 (D011 deferred; sync robustness → ideas.md; vzdump KB confirmed; omega reset script added; D002 done — dead-key purge + Telegram/Google stub removal)
+**Last updated:** 2026-07-01 (D011 deferred; sync robustness → ideas.md; vzdump KB confirmed; omega reset script added; D002 done — dead-key purge + Telegram/Google stub removal; D001 done — gateway token rotated, residue confirmed absent, ZFS: reduced)
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -22,7 +22,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
 | ID | Project | Subject | Status | Note |
 |----|---------|---------|--------|------|
-| D001 | Gateway-token rotation + scrub retained backups | OpenClaw | deferred | matched closing step to same-value relocation; low exposure |
+| D001 | Gateway-token rotation + scrub retained backups — **DONE 2026-07-01**: minted a fresh `openssl rand -hex 32` token into the `gateway_token_file` SecretRef and restarted onto it (planned SIGTERM restart; verified live — control plane survived, `gateway.auth.token` no longer flags in audit). Old-token residue (3 `pre-rotate` files + Step-1 rollback + `openclaw.json`/`.env` phase6 baks) confirmed **absent** — removed by an earlier interrupted run, not the final run (mechanism unlogged); outcome verified, provenance not. **ZFS CoW:** scrub is *reduced*, not guaranteed-erased — moot, since rotation makes the old values dead credentials. Anthropic SQLite `profiles.anthropic:default.token` left as accepted Step-1 exception, out of scope. | OpenClaw | done | — |
 | D002 | Phase 5 `.env` work — rescoped and **DONE 2026-07-01**: deleted dead keys (`TELEGRAM_BOT_TOKEN`, `GOOGLE_WEBSEARCH_API_KEY`, `OPENAI_WHISPER_API_KEY`) from `.env`; removed Telegram channel + plugin + owner-command binding from `openclaw.json`; purged Google search stub (`plugins.entries.google`, `webSearch.apiKey` SecretRef, `google_websearch_key_file` provider, `secrets/google-websearch-api-key.txt`); all three keys revoked upstream by Ryan before deletion; gateway restarted and health-verified clean. | OpenClaw | done | — |
 | D003 | Proxmox maintenance agent (on Mac/omega, SSH-direct, read/propose-first) | Proxmox | queued | depends on omega (Mac executor); stays off Proxmox by principle |
 | D004 | Local Whisper (replaces paid Whisper key) | Proxmox | queued | deployed last, via the Proxmox agent |
