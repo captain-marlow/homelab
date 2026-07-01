@@ -2,7 +2,7 @@
 
 *The master list, in three sections: **queue** (active + todo, in order), **deferred** (real projects not yet scheduled), **completed** (the record). **Order lives only in the queue line;** reorder freely. Rows point at the relevant `docs/<subject>/` for detail. The order is a default, not a hard rule, but where one project genuinely needs another first, that's noted.*
 
-**Last updated:** 2026-07-01 (D011 deferred; sync robustness → ideas.md; vzdump KB confirmed; omega reset script added)
+**Last updated:** 2026-07-01 (D011 deferred; sync robustness → ideas.md; vzdump KB confirmed; omega reset script added; D002 done — dead-key purge + Telegram/Google stub removal)
 
 Status values: `active` · `queued` · `deferred` · `done` · `idea`
 
@@ -23,7 +23,7 @@ Status values: `active` · `queued` · `deferred` · `done` · `idea`
 | ID | Project | Subject | Status | Note |
 |----|---------|---------|--------|------|
 | D001 | Gateway-token rotation + scrub retained backups | OpenClaw | deferred | matched closing step to same-value relocation; low exposure |
-| D002 | Phase 5 `.env` work (re-home Telegram token; drop Google web-search `.env` dup) | OpenClaw | deferred | control-channel token last, one at a time |
+| D002 | Phase 5 `.env` work — rescoped and **DONE 2026-07-01**: deleted dead keys (`TELEGRAM_BOT_TOKEN`, `GOOGLE_WEBSEARCH_API_KEY`, `OPENAI_WHISPER_API_KEY`) from `.env`; removed Telegram channel + plugin + owner-command binding from `openclaw.json`; purged Google search stub (`plugins.entries.google`, `webSearch.apiKey` SecretRef, `google_websearch_key_file` provider, `secrets/google-websearch-api-key.txt`); all three keys revoked upstream by Ryan before deletion; gateway restarted and health-verified clean. | OpenClaw | done | — |
 | D003 | Proxmox maintenance agent (on Mac/omega, SSH-direct, read/propose-first) | Proxmox | queued | depends on omega (Mac executor); stays off Proxmox by principle |
 | D004 | Local Whisper (replaces paid Whisper key) | Proxmox | queued | deployed last, via the Proxmox agent |
 | D005 | OpenClaw router expansion + local cheap-generation tier — add small chat model(s) to CT172 (prove on boring tests first), then expand OpenClaw's router so it orchestrates by role: cheap/high-frequency work (heartbeat, classification, routing hints) → local Ollama models; heavy reasoning → cloud (Opus/gpt-5.5/Sonnet); execution (e.g. ansible deploy) → omega. Semantic routing can use the P005 embeddings. The embedding model aids *deciding*; a local chat model does the cheap *generating* — distinct roles. | OpenClaw/ollama | deferred | Design validated offline, then deferred because there is no active heartbeat workload yet. See `docs/ollama/heartbeat-hybrid-design.md`. |
