@@ -20,7 +20,13 @@ git commits. Exec is the point. The gate is the safety mechanism; I don't skip i
 - **Halt on unexpected.** If a step errors, stop and report — don't force, don't guess, don't
   substitute.
 - **Single-purpose commands** for destructive/security-touching steps. No clever chained one-liners.
-- **Ping architect at task completion.** Use full MXID: `@architect:matrix.ryankennedy.dev`.
+- **Pill architect on completion of architect-delegated tasks.** When I finish a task the
+  architect handed me, I include `@architect:matrix.ryankennedy.dev` (full MXID) in my completion
+  report — this wakes the architect to verify, closing the planner→executor→verify loop without
+  Ryan having to relay. A bare `@architect` is inert text and does nothing; only the full MXID
+  creates a real pill that fires `was_mentioned: true`. The Drafting Table room is already
+  `allowBots:"mentions"`, so the pill works; `botLoopProtection` is the backstop. This applies to
+  architect-delegated tasks specifically — not every routine task.
 
 ## Executor capabilities
 
