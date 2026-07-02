@@ -265,13 +265,24 @@ API with each bot's token (one-time per room). Watch for:
   even deny it. Use the runtime instead:
   - **Hermes (retired):** clean CLI — `hermes sessions list` → `hermes sessions delete <id>` (or
     `hermes sessions prune`). Documented for rollback reference only; Hermes gateway is dormant.
-  - **OpenClaw (architect / main / omega):** **no clean targeted-reset CLI or RPC** — `openclaw gateway
-    call` exposes no callable `session.reset` (it's only a config-policy key). But they
-    **auto-prune** context (20-min TTL) and re-read the repo each session, so **between projects
-    they effectively self-reset** — an explicit reset is rarely needed. Hard reset (e.g. to force a
-    SOUL reload after editing it) = clear that room's entry from
-    `agents/<id>/sessions/sessions.json` (stop gateway → edit → restart). omega uses this same
-    path.
+  - **OpenClaw (architect / main / omega) — superseded 2026-07-02:** `openclaw gateway call
+    sessions.reset --params '{"key":"<session_key>"}'` is a real, callable RPC (confirmed live:
+    `"ok": true` + fresh `sessionId` + `totalTokens: 0` per agent). The gateway detects the reset
+    server-side — no self-bounce risk, no `sessions.json` file-surgery needed. The two reset
+    scripts below replace the old file-rename/manual-edit approach entirely.
+  - **One-verb reset — when Ryan says "reset the Drafting Table sessions":**
+    - **architect + main (CT175):** over `ssh openclaw`, run
+      `homelab/scripts/reset-drafting-table.sh` — resets both via the RPC, printing a fresh
+      `sessionId` per agent as proof. Requires PATH resolution (non-interactive SSH strips PATH);
+      the script resolves the `openclaw` binary explicitly rather than trusting ambient PATH.
+    - **omega (Mac, self):** `scripts/reset-drafting-table-omega.sh` (mise-aware resolver: explicit
+      override → PATH → `mise which openclaw` → legacy npm-global default) resets omega's own
+      session the same way. **Do not run this from inside an in-flight omega turn** — it resets the
+      very session issuing the command; run it from a plain Mac shell, or as a delayed/detached job
+      if triggered from within a turn.
+    - Gate each half on the same evidence: `"ok": true` + `"totalTokens": 0` + a fresh `sessionId`
+      — not the pipeline's exit calm (a swallowed PATH-miss previously let the script print "Done"
+      over an RPC that never ran; both scripts now fail loud instead, see below).
   - **`/reset` pilled to target agent (observed 2026-06-28):** Single-slash `/reset` **pilled to
     the specific agent** does start a fresh CLI session for it. The "no response" symptom seen
     earlier was a **timing gap** — the mention arrived while the new session was still spinning up,

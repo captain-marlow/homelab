@@ -3,12 +3,21 @@
 # Run on the Mac (omega's gateway).
 set -euo pipefail
 
-# Non-interactive SSH strips PATH, so `openclaw` may not be found. Resolve the
-# binary explicitly instead of trusting ambient PATH. (2026-07-02: a PATH miss
-# produced `command not found`, which the old `|| echo` swallowed into a fake
-# "Done" — the RPC never ran.)
-OPENCLAW="${OPENCLAW:-$HOME/.npm-global/bin/openclaw}"
-[[ -x "$OPENCLAW" ]] || { echo "FATAL: openclaw not executable at $OPENCLAW" >&2; exit 1; }
+# Resolve openclaw robustly rather than trusting one hardcoded path. Order:
+# explicit override → PATH → mise (survives node bumps) → legacy npm-global (CT175).
+# On the Mac, openclaw lives under a mise-managed, version-pinned node dir, which
+# rots on every node bump — a bare npm-global default is wrong here.
+resolve_openclaw() {
+  [[ -n "${OPENCLAW:-}" ]] && { printf '%s' "$OPENCLAW"; return; }
+  local c
+  c="$(command -v openclaw 2>/dev/null)" && [[ -n "$c" ]] && { printf '%s' "$c"; return; }
+  if command -v mise >/dev/null 2>&1; then
+    c="$(mise which openclaw 2>/dev/null)" && [[ -n "$c" ]] && { printf '%s' "$c"; return; }
+  fi
+  printf '%s' "$HOME/.npm-global/bin/openclaw"
+}
+OPENCLAW="$(resolve_openclaw)"
+[[ -x "$OPENCLAW" ]] || { echo "FATAL: openclaw not executable at '$OPENCLAW'" >&2; exit 1; }
 
 ROOM='!FKZTkwAIkROBtdHyCl:matrix.ryankennedy.dev'
 key="agent:omega:matrix:channel:${ROOM}"
